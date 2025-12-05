@@ -1,119 +1,149 @@
 @startuml
 
-' Start: To polecenie mówi: "Tutaj zaczyna się rysunek". Bez tego nic się nie wygeneruje.'
-package "com.usosmatch.model" {
+skinparam shadowing false
+skinparam packageStyle rectangle
+skinparam class {
+    BackgroundColor White
+    ArrowColor #2C3E50
+    BorderColor #2C3E50
+    HeaderBackgroundColor #85C1E9
+}
 
-'Rysujemy prostokąt oznaczający paczkę (folder) w Javie. Wszystko, co jest w klamrach {}, znajdzie się wewnątrz tego "pudełka".'
+'Korzystamy z modelu model-view-controller aby stworzyc pierwotny plan specyfikacji naszego projektu
+
+package "model" {
+    
+    'Użyjemy enumów aby nie doprowadzić do niejednoznaczności wpisów 
+    enum Gender {
+        MALE
+        FEMALE
+        OTHER
+    }
+
+    enum DayOfWeek {
+        MONDAY
+        TUESDAY
+        WEDNESDAY
+        THURSDAY
+        FRIDAY
+        SATURDAY
+        SUNDAY
+    }
+
+    'Tak zwane bio naszego uzytkowanika, zawierajace najwazniejsze informacje
     class User {
-        - Long id
+        - int id
         - String firstName
         - String lastName
         - String email
-        - String description
+        - String universityName
+        - Gender gender
+        - Gender targetGender
+        - String profilePictureUrl
         - List<TimeSlot> schedule
-        - List<Interest> interests
-        + void addTimeSlot(TimeSlot slot)
-        + void addInterest(Interest interest)
-        + List<TimeSlot> getSchedule()
+        - Set<Interest> interests
+        
     }
 
-'Klasa TimeSlot: Reprezentuje pojedyncze okienko w planie.'
+    'Klasa ma na celu zbieranie informacji na temat możliwych okienek studentów 
     class TimeSlot {
-        - Long id
-        - Integer dayOfWeek
+        - int id
+        - DayOfWeek dayOfWeek
         - LocalTime startTime
         - LocalTime endTime
+        - boolean isFreeTime
         - User user
-        + boolean overlaps(TimeSlot other) 'overlaps: To metoda, którą warto mieć, żeby sprawdzać, czy dwa okienka na siebie nie nachodzą (logika biznesowa).'
+        + boolean overlaps(TimeSlot other)
     }
-
-'Klasa Interest (Nowość): Klasa reprezentująca zainteresowania (np. "Szachy").'
+    
+    'Wspólne zainteresowania, hobby
     class Interest {
-        - Long id
+        - int id
         - String name
-        - String category
-        - User user
+        - String description
     }
 
-'Klasa Match (Nowość): To tabela wyników.; Łączy dwóch userów (user1, user2); Przechowuje wynik (compatibilityScore np. 85%)'
+    enum MatchStatus {
+        PENDING
+        LIKED_BY_USER_1
+        LIKED_BY_USER_2
+        MATCHED
+        REJECTED
+    }
+    
+    'Klasa ma pozwolic przechowywanie matchy miedzy uzytkownikami 
     class Match {
-        - Long id
+        - int id
         - User user1
         - User user2
         - int compatibilityScore
+        - MatchStatus status
         - LocalDateTime matchDate
     }
 }
 
-'Paczka REPOSITORY Dostęp do danych (To są "rozkazy", jakie możemy wydać bazie danych.))'
-package "com.usosmatch.repository" {
-    interface UserRepository {
+'Wstepnie ten pakiet ma miec kontakt z baza danych aby moc wyszukiwac pewne informacje
+package "repository" {
+    
+    interface UserRepository <<Interface>> {
         + User findByEmail(String email)
-        'Szukamy użytkownika po emailu'
-
-        + List<User> findAll()
-        'findAll: "Daj mi listę wszystkich ludzi'
-
-        + User save(User user)
-        'Zapisz tego użytkownika w bazie'
-
+        + List<User> findByUniversity(String uni)
     }
 
-    interface TimeSlotRepository {
-        + List<TimeSlot> findByUser(User user)
+    interface MatchRepository <<Interface>> {
+        + List<Match> findMatchesByStatus(User u, MatchStatus s)
     }
 }
 
-
-package "com.usosmatch.service" {
+'Klasy obslugujace cale dzialanie parowania 
+package "service" {
+    'Obsluga dzialania naszego matchowania     
     class MatchingService {
+       'Algorytmy sa w trakcie planowania to wstepny model 
         - UserRepository userRepository
-        'Serwis ma w sobie "wstrzyknięte" repozytorium, żeby móc prosić o dane.'
-
-        + List<Match> findMatchesFor(User user)
-        'Szukamy par'
-
+        - MatchRepository matchRepository
+        + List<Match> generatePotentialMatches(User user)
         - int calculateScore(User u1, User u2)
-        'Liczymy zgodnosc'
+        - boolean checkTimeCompatibility(List<TimeSlot> t1, List<TimeSlot> t2)
     }
-
+    'Obsluga rejestracji 
     class UserService {
         - UserRepository userRepository
         + User registerUser(User user)
-        'Rejestracja uzytkownika'
-
-        + void addSchedule(Long userId, List<TimeSlot> slots)
-        'Dodajemy plan zajęc'
+        'Plan na pobieranie automatycznie planu/ewentualnie zostanie zmienione na manualne 
+        + void importScheduleFromUsos(String usosUrl)
     }
 }
 
-package "com.usosmatch.controller" {
+'Mozliwosc kontroli i korzystania z aplikacji przez uzytkownika
+package "controller" {
+    
     class UsosMatchController {
         - UserService userService
         - MatchingService matchingService
-        + User createUser(User user)
-        'Ktoś z internetu wysyła prośbę "Chcę założyć konto". Kontroler to odbiera i woła userService.registerUser()'
-
-        + List<Match> getMatches(Long userId)
-        'Ktoś klika w apce "Znajdź mi parę". Kontroler odbiera kliknięcie i woła matchingService.findMatchesFor()'
-
-        + void addInterest(Long userId, Interest interest)
+        + void register(User user)
+        + List<Match> getMyMatches(Long userId)
+        + void swipe(Long matchId, boolean like)
     }
 }
 
-' Relacje
-com.usosmatch.model.User "1" *-- "many" com.usosmatch.model.TimeSlot : posiada
-com.usosmatch.model.User "1" *-- "many" com.usosmatch.model.Interest : posiada
-com.usosmatch.model.Match --> com.usosmatch.model.User : łączy
+User "1" *-- TimeSlot 
+'Kompozycja. Oznacza to ścisłą zależność. Plan zajęć nie może istnieć bez Studenta.
+User "*" -- "*" Interest 
+'Relacja wiele-do-wielu. Jeden student ma wiele zainteresowań
+Match --> User 
+'Asocjacja obiekt dopasowanie wskazuje na dwóch konkretnych użytkowników
 
-com.usosmatch.repository.UserRepository ..> com.usosmatch.model.User
-com.usosmatch.repository.TimeSlotRepository ..> com.usosmatch.model.TimeSlot
 
-com.usosmatch.service.UserService --> com.usosmatch.repository.UserRepository
-com.usosmatch.service.MatchingService --> com.usosmatch.repository.UserRepository
+'Klasyczne polaczenia tylko we dwoch stylach 
+UserRepository ..> User
+MatchRepository ..> Match
 
-com.usosmatch.controller.UsosMatchController --> com.usosmatch.service.UserService
-com.usosmatch.controller.UsosMatchController --> com.usosmatch.service.MatchingService
+UserService --> UserRepository
+MatchingService --> UserRepository
+MatchingService --> MatchRepository
 
-hide empty members
+UsosMatchController --> UserService
+UsosMatchController --> MatchingService
+
 @enduml

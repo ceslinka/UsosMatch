@@ -1,0 +1,119 @@
+@startuml
+
+' Start: To polecenie mówi: "Tutaj zaczyna się rysunek". Bez tego nic się nie wygeneruje.'
+package "com.usosmatch.model" {
+
+'Rysujemy prostokąt oznaczający paczkę (folder) w Javie. Wszystko, co jest w klamrach {}, znajdzie się wewnątrz tego "pudełka".'
+    class User {
+        - Long id
+        - String firstName
+        - String lastName
+        - String email
+        - String description
+        - List<TimeSlot> schedule
+        - List<Interest> interests
+        + void addTimeSlot(TimeSlot slot)
+        + void addInterest(Interest interest)
+        + List<TimeSlot> getSchedule()
+    }
+
+'Klasa TimeSlot: Reprezentuje pojedyncze okienko w planie.'
+    class TimeSlot {
+        - Long id
+        - Integer dayOfWeek
+        - LocalTime startTime
+        - LocalTime endTime
+        - User user
+        + boolean overlaps(TimeSlot other) 'overlaps: To metoda, którą warto mieć, żeby sprawdzać, czy dwa okienka na siebie nie nachodzą (logika biznesowa).'
+    }
+
+'Klasa Interest (Nowość): Klasa reprezentująca zainteresowania (np. "Szachy").'
+    class Interest {
+        - Long id
+        - String name
+        - String category
+        - User user
+    }
+
+'Klasa Match (Nowość): To tabela wyników.; Łączy dwóch userów (user1, user2); Przechowuje wynik (compatibilityScore np. 85%)'
+    class Match {
+        - Long id
+        - User user1
+        - User user2
+        - int compatibilityScore
+        - LocalDateTime matchDate
+    }
+}
+
+'Paczka REPOSITORY Dostęp do danych (To są "rozkazy", jakie możemy wydać bazie danych.))'
+package "com.usosmatch.repository" {
+    interface UserRepository {
+        + User findByEmail(String email)
+        'Szukamy użytkownika po emailu'
+
+        + List<User> findAll()
+        'findAll: "Daj mi listę wszystkich ludzi'
+
+        + User save(User user)
+        'Zapisz tego użytkownika w bazie'
+
+    }
+
+    interface TimeSlotRepository {
+        + List<TimeSlot> findByUser(User user)
+    }
+}
+
+
+package "com.usosmatch.service" {
+    class MatchingService {
+        - UserRepository userRepository
+        'Serwis ma w sobie "wstrzyknięte" repozytorium, żeby móc prosić o dane.'
+
+        + List<Match> findMatchesFor(User user)
+        'Szukamy par'
+
+        - int calculateScore(User u1, User u2)
+        'Liczymy zgodnosc'
+    }
+
+    class UserService {
+        - UserRepository userRepository
+        + User registerUser(User user)
+        'Rejestracja uzytkownika'
+
+        + void addSchedule(Long userId, List<TimeSlot> slots)
+        'Dodajemy plan zajęc'
+    }
+}
+
+package "com.usosmatch.controller" {
+    class UsosMatchController {
+        - UserService userService
+        - MatchingService matchingService
+        + User createUser(User user)
+        'Ktoś z internetu wysyła prośbę "Chcę założyć konto". Kontroler to odbiera i woła userService.registerUser()'
+
+        + List<Match> getMatches(Long userId)
+        'Ktoś klika w apce "Znajdź mi parę". Kontroler odbiera kliknięcie i woła matchingService.findMatchesFor()'
+
+        + void addInterest(Long userId, Interest interest)
+    }
+}
+
+' Relacje
+com.usosmatch.model.User "1" *-- "many" com.usosmatch.model.TimeSlot : posiada
+com.usosmatch.model.User "1" *-- "many" com.usosmatch.model.Interest : posiada
+com.usosmatch.model.Match --> com.usosmatch.model.User : łączy
+
+com.usosmatch.repository.UserRepository ..> com.usosmatch.model.User
+com.usosmatch.repository.TimeSlotRepository ..> com.usosmatch.model.TimeSlot
+
+com.usosmatch.service.UserService --> com.usosmatch.repository.UserRepository
+com.usosmatch.service.MatchingService --> com.usosmatch.repository.UserRepository
+
+com.usosmatch.controller.UsosMatchController --> com.usosmatch.service.UserService
+com.usosmatch.controller.UsosMatchController --> com.usosmatch.service.MatchingService
+
+hide empty members
+@enduml

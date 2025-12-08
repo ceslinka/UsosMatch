@@ -3,9 +3,7 @@ package com.usosmatch.backend.service;
 import java.util.List;
 import com.usosmatch.backend.model.User;
 import org.springframework.stereotype.Service;
-import com.usosmatch.backend.UserRepository;
-
-import java.util.List;
+import com.usosmatch.backend.repository.UserRepository;
 
 @Service // Uzywamy Springa, zamiast pisać "UserService service = new UserService(repo);'
 

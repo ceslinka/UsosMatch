@@ -10,17 +10,7 @@ public class TimeSlot {
     @GeneratedValue(strategy = GenerationType.IDENTITY) // automatyczne generowanie wartości
     private Long id;
 
-    public enum DayOfWeek { // tworzymy typ danych
-        MONDAY,
-        TUESDAY,
-        WEDNESDAY,
-        THURSDAY,
-        FRIDAY,
-        SATURDAY,
-        SUNDAY
-    }
 
-    ;
     @Enumerated(EnumType.STRING) // Żeby nie miec cyfr (0,1...)
     private DayOfWeek dayOfWeek;
 
@@ -40,6 +30,16 @@ public class TimeSlot {
         this.startTime = startTime;
         this.endTime = endTime;
         this.user = user;
+    }
+
+    public boolean overlaps(TimeSlot other){
+        if (this.dayOfWeek != other.dayOfWeek){ // Od razu odrzucamy jesli dni sie nie pokrywaja
+            return false;
+        }
+        else{
+            return this.startTime.isBefore(other.getEndTime()) && other.getStartTime().isBefore(this.endTime);
+            // Sprawdzenie pokrycia czasowego za pomoca isBefore czyli <
+        }
     }
 
     public Long getId() {

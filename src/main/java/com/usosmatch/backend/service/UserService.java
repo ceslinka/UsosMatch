@@ -10,7 +10,7 @@ import com.usosmatch.backend.repository.UserRepository;
 public class UserService {
     private final UserRepository userRepository; // final oznacza że pole musi zostać wypelnione raz i nie moze się zmienic
     public UserService(UserRepository userRepository) {
-        this.userRepository = userRepository;
+        this.userRepository = userRepository; //Tworzymy zmienną tymczasową
     } // wypelniamy userRepository w momencie tworzenia obiektu UserService
     public User registerUser(User user) {
         System.out.println("Rejestruję nowego użytkownika: " + user.getEmail());

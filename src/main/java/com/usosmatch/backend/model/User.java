@@ -1,10 +1,11 @@
 package com.usosmatch.backend.model;
 
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 
 @Entity // informujemy że to tabela w bazie
@@ -19,16 +20,35 @@ public class User {
     private String universityName;
     private String description;
 
+
+    @Enumerated(EnumType.STRING)
+    private Gender gender;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TimeSlot> schedule = new ArrayList<>();
+
+    @ManyToMany(fetch = FetchType.EAGER) //Pozwala aby user mial wiele zainteresowan i zainteresowanie mialo weiele userow
+    //Fetch pozwala od razu pobrac wszystkie elementy bazy
+    @JoinTable(
+            name = "user_interests", //Tabela sluzaca do poleczenia uzytkownika z zainteresowaniami
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "interest_id")
+    )
+    private Set<Interest> interests = new HashSet<>(); // Skorzystanie z zbioru dla zapewnienia unikalnosci elementow
+
     public User() {
     }
 
-    public User(String firstName, String lastName, String email, String universityName, String description) {
+    public User(String firstName, String lastName, String email, String universityName, String description, Gender gender) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
         this.universityName = universityName;
         this.description = description;
+        this.gender = gender;
     }
+
+
     public Long getId(){
         return id;
     }
@@ -64,6 +84,24 @@ public class User {
     }
     public void setDescription(String description){
         this.description=description;
+    }
+    public List<TimeSlot> getSchedule() {
+        return schedule;
+    }
+    public void setSchedule(List<TimeSlot> schedule) {
+        this.schedule = schedule;
+    }
+    public Gender getGender() {
+        return gender;
+    }
+    public void setGender(Gender gender) {
+        this.gender = gender;
+    }
+    public Set<Interest> getInterests() {
+        return interests;
+    }
+    public void setInterests(Set<Interest> interests) {
+        this.interests = interests;
     }
 }
 

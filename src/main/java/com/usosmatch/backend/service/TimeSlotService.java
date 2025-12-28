@@ -22,5 +22,6 @@ public class TimeSlotService {
     public void deleteTimeSlot(Long userId) {
         timeSlotRepository.deleteById(userId);
     }
+    public void ale_jaja(){}
 
 }

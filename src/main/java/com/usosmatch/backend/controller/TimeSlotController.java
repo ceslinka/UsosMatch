@@ -15,4 +15,8 @@ public class TimeSlotController {
     public TimeSlot addTimeSlot(@RequestBody TimeSlot timeSlot, @RequestParam Long userId ) {
         return timeSlotService.addTimeSlot(timeSlot, userId);
     }
+    @DeleteMapping("/{id}")
+    public void deleteTimeSlot(@PathVariable Long id){
+        timeSlotService.deleteTimeSlot(id);
+    }
 }

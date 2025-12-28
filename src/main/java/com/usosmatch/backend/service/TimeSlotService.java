@@ -19,5 +19,8 @@ public class TimeSlotService {
         return timeSlotRepository.save(timeSlot);
 
     }
+    public void deleteTimeSlot(Long userId) {
+        timeSlotRepository.deleteById(userId);
+    }
 
 }

@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController // rest bo odsyła czyste dane JSON
 @RequestMapping("/api/timeslots")
 public class TimeSlotController {
-    private TimeSlotService timeSlotService;
+    private final TimeSlotService timeSlotService; //Uniemożliwienie modyfikacji
     public TimeSlotController(TimeSlotService timeSlotService){
         this.timeSlotService = timeSlotService;
     }

@@ -16,11 +16,15 @@ public class TimeSlotService {
     public TimeSlot addTimeSlot(TimeSlot timeSlot, Long userId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("Nie ma takiego usera"));
 
+        if (!timeSlot.getEndTime().isAfter(timeSlot.getStartTime())) {
+            throw new RuntimeException("Godzina zakończenia musi być późniejsza niż godzina rozpoczęcia!");
+        }
+
         for (TimeSlot existingSlot : user.getSchedule()) {
             if (existingSlot.overlaps(timeSlot)) {
                 // Jeśli jest kolizja, rzucamy błąd i przerywamy dodawanie!
                 throw new RuntimeException("Masz już zajęcia w tym czasie ("
-                        + existingSlot.getDayOfWeek() + " " + existingSlot.getStartTime() + ")");
+                        + existingSlot.getDayOfWeek() + " " + existingSlot.getStartTime() + "-" + existingSlot.getEndTime() +")");
             }
         }
 

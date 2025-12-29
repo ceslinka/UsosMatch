@@ -1,5 +1,6 @@
 package com.usosmatch.backend.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.time.LocalTime;
@@ -15,8 +16,12 @@ public class TimeSlot {
     @Enumerated(EnumType.STRING) // Żeby nie miec cyfr (0,1...)
     private DayOfWeek dayOfWeek;
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm:ss")
     private LocalTime startTime;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm:ss")
     private LocalTime endTime;
+
     private boolean isFreeTime;
 
     @ManyToOne

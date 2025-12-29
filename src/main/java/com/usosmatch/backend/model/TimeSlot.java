@@ -1,5 +1,6 @@
 package com.usosmatch.backend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.time.LocalTime;
 
@@ -20,6 +21,7 @@ public class TimeSlot {
 
     @ManyToOne
     @JoinColumn(name = "user_id")
+    @JsonIgnore
     private User user;
 
     public TimeSlot() {

@@ -24,6 +24,7 @@ public class MatchingService {
     public List<Match> generateMatches(Long userId){
        User currentUser = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("Nie znaleziono użytkownika o takim ID: " + userId)); //Znalezienie uzytkownika
        List<User> allUsers = userRepository.findAll(); //Pobranie wszytskich uzytkownikow
+        List<Match> exisitingMatches = matchRepository.findAllForUser(currentUser); // Naprawienie bledu odswiezania
         List<Match> matches = new ArrayList<>();
        for(User candidate : allUsers){
            if(candidate.getId().equals(currentUser.getId())){
@@ -33,14 +34,33 @@ public class MatchingService {
            int score = calculateScore(currentUser, candidate);
 
            if(score >0){
-               Match newMatch = new Match(currentUser,candidate,score, MatchStatus.PENDING); //Nadajemy jako oczekujacy aby uzytkownik mogl zdecydowac
-               matchRepository.save(newMatch);
-               matches.add(newMatch);
+               Match matchToSave = findExistingMatch(exisitingMatches, candidate);
+               if(matchToSave != null) {
+                   matchToSave.setCompabilityScore(score);
+               }else {
+                   matchToSave = new Match(currentUser, candidate, score, MatchStatus.PENDING); //Nadajemy jako oczekujacy aby uzytkownik mogl zdecydowac
+               }
+               matchRepository.save(matchToSave);
+               matches.add(matchToSave);
            }
+
+
        }
         matches.sort((m1, m2) -> Integer.compare(m2.getCompabilityScore(), m1.getCompabilityScore())); //Sortowanie według wyniku
 
         return matches;
+    }
+
+    private Match findExistingMatch(List<Match> existingMatches, User candidate) {
+        for (Match m : existingMatches) {
+            // Sprawdzamy: Czy w tym matchu "tą drugą osobą" jest nasz kandydat?
+            // Musimy sprawdzić obie strony (user1 i user2), bo nie wiemy gdzie zapisała nas baza
+            if (m.getUser1().getId().equals(candidate.getId()) ||
+                    m.getUser2().getId().equals(candidate.getId())) {
+                return m;
+            }
+        }
+        return null; // Nie znaleziono - to będzie nowa para
     }
 
     private int calculateScore(User user1, User user2){

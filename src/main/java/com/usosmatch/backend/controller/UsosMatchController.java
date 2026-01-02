@@ -34,4 +34,9 @@ public class UsosMatchController {
         return matches;
     }
 
+    @DeleteMapping("/users/{id}")
+    public void deleteUser(@PathVariable Long id){
+        userService.deleteUser(id);
+    }
+
 }

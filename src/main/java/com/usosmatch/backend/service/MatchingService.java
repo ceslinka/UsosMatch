@@ -65,10 +65,21 @@ public class MatchingService {
 
     private int calculateScore(User user1, User user2){
         int score = 0;
-        Set<Interest> commonInterest =  new HashSet<>(user1.getInterests()); //Kopiujemy zainteresowania do zbioru aby nie zniekształcic bazy danych
 
-        commonInterest.retainAll(user2.getInterests());
-        score += commonInterest.size() * 10;
+        Set<String> set1 = new HashSet<>();
+
+        Set<String> set2 = new HashSet<>();
+
+        for(Interest inte: user1.getInterests()){
+            set1.add(inte.getName().toLowerCase());
+        }
+
+        for(Interest inte: user2.getInterests()){
+            set2.add(inte.getName().toLowerCase());
+        }
+
+        set1.retainAll(set2); //Pokrycie się elementów zainteresowania
+        score += set1.size() * 10;
 
         for(TimeSlot slot1: user1.getSchedule()){
             for(TimeSlot slot2: user2.getSchedule()) {

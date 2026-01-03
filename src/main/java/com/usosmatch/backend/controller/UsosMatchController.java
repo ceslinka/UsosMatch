@@ -28,10 +28,9 @@ public class UsosMatchController {
         return userService.getAllUsers();
     }
 
-    @GetMapping("/matches/{userId}")
-    public List<Match> getUserMatches(@PathVariable Long userId){
-        List<Match> matches = matchingService.generateMatches(userId);
-        return matches;
+    @PostMapping("/matches/generate")
+    public List<Match> generateUserMatches(@RequestParam Long userId) {
+        return matchingService.generateMatches(userId);
     }
 
     @DeleteMapping("/users/{id}")

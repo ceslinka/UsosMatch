@@ -9,7 +9,7 @@ public class Interest {
     @Id //Primary key bazy
     @GeneratedValue(strategy = GenerationType.IDENTITY) //Automatyczne nadawanie numerów ID
 
-    private long id;
+    private Long id;
     private String name;
     private String description;
 
@@ -20,11 +20,11 @@ public class Interest {
         this.description = description;
     }
 
-    public long getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

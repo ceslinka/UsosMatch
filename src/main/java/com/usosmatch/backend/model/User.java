@@ -1,5 +1,6 @@
 package com.usosmatch.backend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.util.ArrayList;
@@ -25,9 +26,10 @@ public class User {
     private Gender gender;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<TimeSlot> schedule = new ArrayList<>();
 
-    @ManyToMany(fetch = FetchType.EAGER) //Pozwala aby user mial wiele zainteresowan i zainteresowanie mialo weiele userow
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL) //Pozwala aby user mial wiele zainteresowan i zainteresowanie mialo weiele userow
     //Fetch pozwala od razu pobrac wszystkie elementy bazy
     @JoinTable(
             name = "user_interests", //Tabela sluzaca do poleczenia uzytkownika z zainteresowaniami

@@ -1,0 +1,53 @@
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+skinparam actorStyle awesome
+skinparam usecase {
+    BackgroundColor White
+    BorderColor #2C3E50
+    ArrowColor #2C3E50
+}
+
+actor "Student" as student
+actor "System USOS" as usos <<System Zewnętrzny>>
+
+package "Aplikacja UsosMatch " {
+
+    
+    'Pola obslugiwane przez aplikacje
+    usecase "Rejestracja i Logowanie" as UC_Login
+    usecase "Edycja Profilu" as UC_Profile
+    
+    
+    usecase "Zarządzanie Planem Zajęć" as UC_Schedule
+    usecase "Import planu z USOS" as UC_Import
+    usecase "Ręczne definiowanie okienek" as UC_Manual
+
+  
+    usecase "Szukanie Par" as UC_Swipe
+    usecase "Algorytm weryfikacji\nzgodności czasu" as UC_CheckTime
+    usecase "Swipe" as UC_Action
+
+}
+
+'relacje studenta
+student --> UC_Login
+student --> UC_Profile
+student --> UC_Schedule
+student --> UC_Swipe
+
+'Wstepnie dodane dwie wersje zarzadania planem zobaczymy jak wyjdzie z polaczeniem z usosem 
+UC_Schedule <.. UC_Import : <<extend>>
+UC_Schedule <.. UC_Manual : <<extend>>
+
+'Narazie to tu zostawimy 
+UC_Import --> usos : Pobiera dane
+
+'Sprawdzenie warunku
+UC_Swipe ..> UC_CheckTime : <<include>>
+'Zwrot informacji 
+UC_Swipe <.. UC_Action : <<extend>>
+
+
+
+@enduml

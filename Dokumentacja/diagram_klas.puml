@@ -1,0 +1,149 @@
+@startuml
+
+skinparam shadowing false
+skinparam packageStyle rectangle
+skinparam class {
+    BackgroundColor White
+    ArrowColor #2C3E50
+    BorderColor #2C3E50
+    HeaderBackgroundColor #85C1E9
+}
+
+'Korzystamy z modelu model-view-controller aby stworzyc pierwotny plan specyfikacji naszego projektu
+
+package "model" {
+    
+    'Użyjemy enumów aby nie doprowadzić do niejednoznaczności wpisów 
+    enum Gender {
+        MALE
+        FEMALE
+        OTHER
+    }
+
+    enum DayOfWeek {
+        MONDAY
+        TUESDAY
+        WEDNESDAY
+        THURSDAY
+        FRIDAY
+        SATURDAY
+        SUNDAY
+    }
+
+    'Tak zwane bio naszego uzytkowanika, zawierajace najwazniejsze informacje
+    class User {
+        - int id
+        - String firstName
+        - String lastName
+        - String email
+        - String universityName
+        - Gender gender
+        - Gender targetGender
+        - String profilePictureUrl
+        - List<TimeSlot> schedule
+        - Set<Interest> interests
+        
+    }
+
+    'Klasa ma na celu zbieranie informacji na temat możliwych okienek studentów 
+    class TimeSlot {
+        - int id
+        - DayOfWeek dayOfWeek
+        - LocalTime startTime
+        - LocalTime endTime
+        - boolean isFreeTime
+        - User user
+        + boolean overlaps(TimeSlot other)
+    }
+    
+    'Wspólne zainteresowania, hobby
+    class Interest {
+        - int id
+        - String name
+        - String description
+    }
+
+    enum MatchStatus {
+        PENDING
+        LIKED_BY_USER_1
+        LIKED_BY_USER_2
+        MATCHED
+        REJECTED
+    }
+    
+    'Klasa ma pozwolic przechowywanie matchy miedzy uzytkownikami 
+    class Match {
+        - int id
+        - User user1
+        - User user2
+        - int compatibilityScore
+        - MatchStatus status
+        - LocalDateTime matchDate
+    }
+}
+
+'Wstepnie ten pakiet ma miec kontakt z baza danych aby moc wyszukiwac pewne informacje
+package "repository" {
+    
+    interface UserRepository <<Interface>> {
+        + User findByEmail(String email)
+        + List<User> findByUniversity(String uni)
+    }
+
+    interface MatchRepository <<Interface>> {
+        + List<Match> findMatchesByStatus(User u, MatchStatus s)
+    }
+}
+
+'Klasy obslugujace cale dzialanie parowania 
+package "service" {
+    'Obsluga dzialania naszego matchowania     
+    class MatchingService {
+       'Algorytmy sa w trakcie planowania to wstepny model 
+        - UserRepository userRepository
+        - MatchRepository matchRepository
+        + List<Match> generatePotentialMatches(User user)
+        - int calculateScore(User u1, User u2)
+        - boolean checkTimeCompatibility(List<TimeSlot> t1, List<TimeSlot> t2)
+    }
+    'Obsluga rejestracji 
+    class UserService {
+        - UserRepository userRepository
+        + User registerUser(User user)
+        'Plan na pobieranie automatycznie planu/ewentualnie zostanie zmienione na manualne 
+        + void importScheduleFromUsos(String usosUrl)
+    }
+}
+
+'Mozliwosc kontroli i korzystania z aplikacji przez uzytkownika
+package "controller" {
+    
+    class UsosMatchController {
+        - UserService userService
+        - MatchingService matchingService
+        + void register(User user)
+        + List<Match> getMyMatches(Long userId)
+        + void swipe(Long matchId, boolean like)
+    }
+}
+
+User "1" *-- TimeSlot 
+'Kompozycja. Oznacza to ścisłą zależność. Plan zajęć nie może istnieć bez Studenta.
+User "*" -- "*" Interest 
+'Relacja wiele-do-wielu. Jeden student ma wiele zainteresowań
+Match --> User 
+'Asocjacja obiekt dopasowanie wskazuje na dwóch konkretnych użytkowników
+
+
+'Klasyczne polaczenia tylko we dwoch stylach 
+UserRepository ..> User
+MatchRepository ..> Match
+
+UserService --> UserRepository
+MatchingService --> UserRepository
+MatchingService --> MatchRepository
+
+UsosMatchController --> UserService
+UsosMatchController --> MatchingService
+
+@enduml

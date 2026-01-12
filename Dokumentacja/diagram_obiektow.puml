@@ -1,0 +1,55 @@
+@startuml
+
+title Diagram Obiektów: Dopasowanie Ani i Marka
+
+'Składnia: object "nazwa_zmiennej : TypKlasy" as alias
+
+object "user1 : User" as ania {
+    id = 1
+    firstName = "Ania"
+    lastName = "Kowalska"
+    email = "ania@agh.edu.pl"
+    description = "Szukam teamu do projektu"
+}
+
+object "user2 : User" as marek {
+    id = 2
+    firstName = "Marek"
+    lastName = "Nowak"
+    email = "marek@agh.edu.pl"
+    description = "Lubię backend"
+}
+
+object "slotAni : TimeSlot" as slot1 {
+    dayOfWeek = 2 (Wtorek)
+    startTime = 11:30
+    endTime = 13:00
+}
+
+object "slotMarka : TimeSlot" as slot2 {
+    dayOfWeek = 2 (Wtorek)
+    startTime = 11:30
+    endTime = 13:00
+}
+
+object "zainteresowanie : Interest" as java {
+    name = "Java Spring"
+    category = "Programowanie"
+}
+
+object "match1 : Match" as dopasowanie {
+    id = 101
+    compatibilityScore = 95
+    matchDate = 2025-11-27T10:00
+}
+
+ania -- slot1 : posiada w planie
+marek -- slot2 : posiada w planie
+
+ania -- java : interesuje się
+marek -- java : interesuje się
+
+dopasowanie --> ania : user1
+dopasowanie --> marek : user2
+
+@enduml

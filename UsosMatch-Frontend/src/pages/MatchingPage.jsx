@@ -1,64 +1,56 @@
 import { useState, useEffect } from 'react';
-import { User, GraduationCap, Quote, Check, X, CalendarClock, Flame } from 'lucide-react';
+import { User, GraduationCap, Quote, Check, X, CalendarClock, Flame, Ruler, Cake, Tag } from 'lucide-react';
 
 const MatchingPage = () => {
   const [matches, setMatches] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [myId, setMyId] = useState(null); // Przechowujemy SWOJE ID
+  const [myId, setMyId] = useState(null);
 
   useEffect(() => {
-    // 1. Pobieramy swoje ID z pamięci (string -> number)
     const storedIdString = localStorage.getItem("myUserId");
-    if (!storedIdString) {
-        window.location.href = "/";
-        return;
-    }
-    const idNum = parseInt(storedIdString); // Zamieniamy "1" na 1 (liczba)
+    if (!storedIdString) { window.location.href = "/"; return; }
+    const idNum = parseInt(storedIdString);
     setMyId(idNum);
 
-    // 2. Pobieramy matche
     fetch(`http://localhost:8080/api/matches/${idNum}`)
         .then(res => res.json())
         .then(data => {
             console.log("Pobrane matche:", data);
-            setMatches(data);
+            // Sortujemy: Najpierw ci z najwyższym wynikiem!
+            const sortedData = data.sort((a,b) => b.compabilityScore - a.compabilityScore);
+            setMatches(sortedData);
             setLoading(false);
         })
-        .catch(err => {
-            console.error("Błąd Backendu:", err);
-            setLoading(false);
-        });
+        .catch(err => { console.error(err); setLoading(false); });
   }, []);
 
- const handleDecision = (decision) => {
-       // 1. Zabezpieczenie (żeby nie kliknąć jak nic nie ma)
-       if (matches.length === 0 || !matches[currentIndex]) return;
+  const handleDecision = (decision) => {
+      if (matches.length === 0 || !matches[currentIndex]) return;
+      const matchId = matches[currentIndex].id;
+      const action = decision === "accept" ? "accept" : "reject";
 
-       const matchId = matches[currentIndex].id; // Pobieramy ID matcha z obiektu
+      fetch(`http://localhost:8080/api/matches/${matchId}/${action}`, { method: 'POST' });
 
-       // 2. Wybieramy końcówkę adresu (accept lub reject)
-       // decision to "accept" (zielony) lub "reject" (czerwony)
-       const action = decision === "accept" ? "accept" : "reject";
+      if (currentIndex < matches.length) {
+          setCurrentIndex(prev => prev + 1);
+      }
+  };
 
-       console.log(`Wysyłam decyzję: ${decision} dla matcha ID: ${matchId}`);
+  // --- Helper: Obliczanie wieku ---
+  const calculateAge = (dateString) => {
+      if (!dateString) return null;
+      const today = new Date();
+      const birthDate = new Date(dateString);
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const m = today.getMonth() - birthDate.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+          age--;
+      }
+      return age;
+  };
 
-       // 3. Strzał do Backendu (nie czekamy na odpowiedź z przewijaniem, żeby było płynnie)
-       fetch(`http://localhost:8080/api/matches/${matchId}/${action}`, {
-           method: 'POST'
-       }).then(res => {
-           if (res.ok) console.log("Status zmieniony w bazie!");
-           else console.error("Błąd zapisu w bazie");
-       });
-
-       // 4. Przejście do następnej karty (wizualne)
-       if (currentIndex < matches.length) {
-           setCurrentIndex(prev => prev + 1);
-       }
-   };
-
-
-  // --- BEZPIECZEŃSTWO PRZED PUSTĄ LISTĄ ---
+  // --- RENDEROWANIE (Bezpiecznik) ---
   if (!loading && (!matches || matches.length === 0 || currentIndex >= matches.length)) {
       return (
           <div style={{ textAlign: 'center', marginTop: '100px', color: '#666' }}>
@@ -69,87 +61,96 @@ const MatchingPage = () => {
       );
   }
 
-  if (loading) return <div style={{textAlign: 'center', marginTop: '50px'}}>Ładowanie algorytmu...</div>;
+  if (loading) return <div style={{textAlign: 'center', marginTop: '50px'}}>Szukam najlepszych kandydatek/ów...</div>;
 
   const currentMatch = matches[currentIndex];
+  let candidate = currentMatch.user1.id === myId ? currentMatch.user2 : currentMatch.user1;
 
-  // ============================================================
-  // 🔥 FIX NAPRAWCZY: Określanie kto jest "Tym Drugim"
-  // ============================================================
-
-  let candidate = null;
-
-  // Sprawdź czy my jesteśmy User1
-  if (currentMatch.user1.id === myId) {
-      candidate = currentMatch.user2;
-  } else {
-      candidate = currentMatch.user1;
-  }
-
-  // BARDZO WAŻNE: Sprawdź czy kandydat w ogóle istnieje (żeby nie było białego ekranu)
-  if (!candidate) {
-      return <div>Błąd danych matcha (Brak partnera w obiekcie)</div>;
-  }
-  // ============================================================
+  if (!candidate) return <div>Błąd danych matcha</div>;
 
   const score = currentMatch.compabilityScore;
+  const age = calculateAge(candidate.dateOfBirth);
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', paddingTop: '40px', paddingBottom: '100px' }}>
+    <div style={{ display: 'flex', justifyContent: 'center', paddingTop: '20px', paddingBottom: '100px' }}>
 
-      {/* KARTA */}
+      {/* KARTA GLÓWNA */}
       <div style={cardStyle}>
 
-        {/* Nagłówek */}
+        {/* NAGŁÓWEK: AVATAR + SCORE */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <div style={{ width: '80px', height: '80px', background: '#e0e7ff', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ width: '80px', height: '80px', background: 'linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow:'0 4px 10px rgba(0,0,0,0.1)' }}>
                 <User size={40} color="#4338ca" />
             </div>
 
-            <div style={{ background: score > 50 ? '#dcfce7' : '#ffedd5', padding: '10px 15px', borderRadius: '20px', fontWeight: 'bold', color: score > 50 ? '#166534' : '#c2410c' }}>
+            <div style={{ background: score > 50 ? '#dcfce7' : '#ffedd5', padding: '8px 16px', borderRadius: '20px', fontWeight: 'bold', color: score > 50 ? '#166534' : '#c2410c', fontSize:'14px', border: score > 50 ? '1px solid #86efac' : '1px solid #fdba74' }}>
                 {score}% Zgodności
             </div>
         </div>
 
-        {/* Dane Tekstowe - TU MOGŁO SIĘ SYPAĆ */}
-        <h2 style={{ marginTop: '20px', marginBottom: '5px' }}>{candidate.firstName || "Anonim"} {candidate.lastName || ""}</h2>
+        {/* DANE OSOBOWE */}
+        <div style={{marginTop: '15px'}}>
+            <h2 style={{ margin: '0 0 5px 0' }}>{candidate.firstName} {candidate.lastName}</h2>
 
-        <div style={infoRow}>
-            <GraduationCap size={18} color="#6366f1"/>
-            <span>{candidate.universityName || "Brak uczelni"}</span>
+            {/* TAGI: Wiek | Wzrost | Uczelnia */}
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom:'15px' }}>
+                {age && (
+                    <span style={pillStyle}>
+                        <Cake size={14}/> {age} lat
+                    </span>
+                )}
+                {candidate.height > 0 && (
+                    <span style={pillStyle}>
+                        <Ruler size={14}/> {candidate.height} cm
+                    </span>
+                )}
+                <span style={pillStyle}>
+                    <GraduationCap size={14}/> {candidate.universityName}
+                </span>
+            </div>
         </div>
 
-        <div style={{ ...infoRow, fontStyle: 'italic', color: '#555', marginTop: '15px' }}>
-            <Quote size={18} color="#6366f1" style={{minWidth: '18px'}}/>
-            <span>"{candidate.description || "Brak opisu..."}"</span>
-        </div>
+        {/* CYTAT / OPIS */}
+        {candidate.description && (
+            <div style={{ display:'flex', gap:'10px', fontStyle: 'italic', color: '#555', background:'rgba(255,255,255,0.5)', padding:'10px', borderRadius:'12px', border:'1px solid rgba(0,0,0,0.05)' }}>
+                <Quote size={20} color="#6366f1" style={{minWidth:'20px'}}/>
+                <span style={{fontSize:'14px'}}>"{candidate.description}"</span>
+            </div>
+        )}
+
+        {/* --- PASJE (HOBBY) --- */}
+        {candidate.interests && candidate.interests.length > 0 && (
+            <div style={{ marginTop: '20px' }}>
+                <div style={{fontSize:'12px', fontWeight:'bold', color:'#888', textTransform:'uppercase', marginBottom:'5px', display:'flex', gap:'5px', alignItems:'center'}}>
+                    <Tag size={12}/> Lubi:
+                </div>
+                <div style={{display:'flex', flexWrap:'wrap', gap:'6px'}}>
+                    {candidate.interests.map(i => (
+                        <span key={i.id} style={hobbyChip}>
+                            {i.name}
+                        </span>
+                    ))}
+                </div>
+            </div>
+        )}
 
         <hr style={{ margin: '20px 0', border: 'none', borderTop: '1px solid rgba(0,0,0,0.1)' }} />
 
-        {/* Czas */}
-        <div>
-            <h4 style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: '0 0 10px 0' }}>
-                <CalendarClock size={20}/>
-                Wspólne okienka:
+        {/* CZAS */}
+        <div style={{background:'#f3f4f6', padding:'10px', borderRadius:'15px'}}>
+            <h4 style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: '0 0 5px 0', fontSize:'14px' }}>
+                <CalendarClock size={18}/>
+                Wspólny Czas:
             </h4>
-            <p style={{ fontSize: '14px', color: '#666' }}>
-               Algorytm wykrył nakładanie się planów.
+            <p style={{ fontSize: '13px', color: '#666', margin:0 }}>
+               System wykrył nakładające się okienka w planie zajęć. Pasujecie czasowo!
             </p>
         </div>
 
-        {/* Przyciski */}
-        <div style={{ display: 'flex', gap: '20px', marginTop: '30px' }}>
-            <button
-                onClick={() => handleDecision("reject")}
-                style={{ ...actionButton, border: '2px solid #ef4444', color: '#ef4444' }}>
-                <X size={32} />
-            </button>
-
-            <button
-                onClick={() => handleDecision("accept")}
-                style={{ ...actionButton, background: '#10b981', color: 'white', flex: 1, border: 'none' }}>
-                <Check size={32} /> Zaproś
-            </button>
+        {/* PRZYCISKI AKCJI */}
+        <div style={{ display: 'flex', gap: '15px', marginTop: '25px' }}>
+            <button onClick={() => handleDecision("reject")} style={rejectBtn}><X size={32} /></button>
+            <button onClick={() => handleDecision("accept")} style={acceptBtn}><Check size={32} /> Zaproś</button>
         </div>
 
       </div>
@@ -157,11 +158,42 @@ const MatchingPage = () => {
   );
 };
 
-// Style bez zmian
+// --- NOWOCZESNE STYLE ---
 const cardStyle = {
-    position: 'relative', background: 'rgba(255, 255, 255, 0.85)', backdropFilter: 'blur(20px)', borderRadius: '30px', padding: '30px', width: '90%', maxWidth: '400px', height: 'auto', boxShadow: '0 20px 50px rgba(0,0,0,0.15)', border: '1px solid rgba(255,255,255,0.6)', animation: 'fadeIn 0.5s ease-out'
+    position: 'relative',
+    background: 'rgba(255, 255, 255, 0.9)', // Mniej prześwitująca karta dla czytelności
+    backdropFilter: 'blur(20px)',
+    borderRadius: '30px',
+    padding: '25px',
+    width: '90%',
+    maxWidth: '400px',
+    boxShadow: '0 20px 60px rgba(99, 102, 241, 0.15)', // Fioletowa poświata
+    border: '1px solid white',
+    animation: 'fadeIn 0.4s ease-out'
 };
-const infoRow = { display: 'flex', alignItems: 'center', gap: '10px', color: '#333', fontSize: '15px' };
-const actionButton = { borderRadius: '50px', height: '60px', width: '60px', fontSize: '18px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', background: 'transparent', transition: 'transform 0.1s' };
+
+const pillStyle = {
+    display: 'inline-flex', alignItems: 'center', gap: '4px',
+    background: '#fff', border: '1px solid #e5e7eb',
+    padding: '4px 10px', borderRadius: '20px', fontSize: '12px', fontWeight:'600', color: '#374151'
+};
+
+const hobbyChip = {
+    background: '#e0e7ff', color: '#4338ca',
+    padding: '4px 10px', borderRadius: '8px',
+    fontSize: '12px', fontWeight: '500'
+};
+
+const rejectBtn = {
+    width: '60px', height: '60px', borderRadius: '50%', border: '2px solid #ef4444',
+    background: 'white', color: '#ef4444', display:'flex', justifyContent:'center', alignItems:'center', cursor:'pointer', transition:'0.1s'
+};
+
+const acceptBtn = {
+    flex: 1, height: '60px', borderRadius: '50px', border: 'none',
+    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+    color: 'white', fontSize:'18px', fontWeight:'bold', display:'flex', justifyContent:'center', alignItems:'center', gap:'10px', cursor:'pointer',
+    boxShadow: '0 4px 15px rgba(16, 185, 129, 0.4)'
+};
 
 export default MatchingPage;

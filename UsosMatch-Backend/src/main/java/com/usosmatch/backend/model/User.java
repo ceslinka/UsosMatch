@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.time.LocalDate;
 
 
 @Entity // informujemy że to tabela w bazie
@@ -20,7 +21,8 @@ public class User {
     private String email;
     private String universityName;
     private String description;
-
+    private LocalDate dateOfBirth;
+    private int height;
 
     @Enumerated(EnumType.STRING)
     private Gender gender;
@@ -103,6 +105,22 @@ public class User {
     }
     public void setInterests(Set<Interest> interests) {
         this.interests = interests;
+    }
+
+    public LocalDate getDateOfBirth() {
+        return dateOfBirth;
+    }
+
+    public void setDateOfBirth(LocalDate dateOfBirth) {
+        this.dateOfBirth = dateOfBirth;
+    }
+
+    public int getHeight() {
+        return height;
+    }
+
+    public void setHeight(int height) {
+        this.height = height;
     }
 }
 

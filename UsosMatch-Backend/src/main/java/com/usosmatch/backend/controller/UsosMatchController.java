@@ -1,8 +1,10 @@
 package com.usosmatch.backend.controller;
 import com.usosmatch.backend.model.Match;
 import com.usosmatch.backend.model.User;
+import com.usosmatch.backend.repository.InterestRepository;
 import com.usosmatch.backend.service.MatchingService;
 import com.usosmatch.backend.service.UserService;
+import org.hibernate.Internal;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -11,10 +13,12 @@ import java.util.List;
 public class UsosMatchController {
     private final UserService userService;
     private final MatchingService matchingService;
+    private final InterestRepository interestRepository;
 
-    public UsosMatchController(UserService userService, MatchingService matchingService) {
+    public UsosMatchController(UserService userService, MatchingService matchingService, InterestRepository interestRepository) {
         this.userService = userService;
         this.matchingService = matchingService;
+        this.interestRepository = interestRepository;
     }
 
 
@@ -51,5 +55,15 @@ public class UsosMatchController {
     @PostMapping("/matches/{matchId}/reject")
     public void rejectMatch(@PathVariable Long matchId) {
         matchingService.rejectMatch(matchId);
+    }
+
+    @GetMapping("/interests")
+    public List<com.usosmatch.backend.model.Interest> getAllInterests() {
+        return interestRepository.findAll();
+    }
+
+    @PutMapping("/users/{id}")
+    public User updateUser(@PathVariable Long id, @RequestBody User user) {
+        return userService.updateUser(id, user);
     }
 }

@@ -1,43 +1,79 @@
 package com.usosmatch.backend.service;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
+import com.usosmatch.backend.model.Interest;
 import com.usosmatch.backend.model.Match;
 import com.usosmatch.backend.model.User;
+import com.usosmatch.backend.repository.InterestRepository;
 import com.usosmatch.backend.repository.MatchRepository;
 import org.springframework.stereotype.Service;
 import com.usosmatch.backend.repository.UserRepository;
 
-@Service // Uzywamy Springa, zamiast pisać "UserService service = new UserService(repo);'
-
+@Service
 public class UserService {
 
-    private final UserRepository userRepository; // final oznacza że pole musi zostać wypelnione raz i nie moze się zmienic
+    private final UserRepository userRepository;
     private final MatchRepository matchRepository;
+    // DODANO:
+    private final InterestRepository interestRepository;
 
-    public UserService(UserRepository userRepository, MatchRepository matchRepository) {
-        this.userRepository = userRepository; //Tworzymy zmienną tymczasową
+    // PAMIĘTAJ O ZAKTUALIZOWANIU KONSTRUKTORA!
+    public UserService(UserRepository userRepository, MatchRepository matchRepository, InterestRepository interestRepository) {
+        this.userRepository = userRepository;
         this.matchRepository = matchRepository;
-    } // wypelniamy userRepository w momencie tworzenia obiektu UserService
-
+        this.interestRepository = interestRepository;
+    }
 
     public User registerUser(User user) {
-        if(userRepository.findByEmail(user.getEmail()).isPresent()){
-            throw new RuntimeException("Taki email juz istnieje");
+        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
+            throw new RuntimeException("Taki email już istnieje");
         }
-        else {
-            System.out.println("Rejestruję nowego użytkownika: " + user.getEmail());
-            return userRepository.save(user); // to metoda która robi INSERT w bazie
-        }
+        // Przy rejestracji też warto załadować pasje "porządnie", jeśli jakieś są
+        return userRepository.save(user);
     }
 
-    public void deleteUser(Long userId){
+    public void deleteUser(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Użytkownik o takim ID nie istnieje"));
-        List<Match> matche = matchRepository.findAllForUser(userRepository.getReferenceById(userId));
-        matchRepository.deleteAll(matche);
+        List<Match> matches = matchRepository.findAllForUser(user);
+        matchRepository.deleteAll(matches);
         userRepository.deleteById(userId);
     }
+
+    // --- NAPRAWIONA METODA AKTUALIZACJI ---
+    public User updateUser(Long userId, User updatedDetails) {
+        return userRepository.findById(userId).map(existingUser -> {
+
+            // 1. Aktualizacja prostych danych
+            existingUser.setHeight(updatedDetails.getHeight());
+            existingUser.setDateOfBirth(updatedDetails.getDateOfBirth());
+            existingUser.setDescription(updatedDetails.getDescription());
+
+            // 2. NAPRAWA ZAPISYWANIA PASJI
+            // Frontend wysyła listę obiektów, gdzie jest tylko ID: [{id:1}, {id:5}]
+            // Musimy pobrać z bazy PEŁNE obiekty Interest na podstawie tych ID.
+            if (updatedDetails.getInterests() != null) {
+
+                // Wyciągamy same numerki ID z tego co przyszło
+                List<Long> interestIds = updatedDetails.getInterests().stream()
+                        .map(Interest::getId)
+                        .collect(Collectors.toList());
+
+                // Pobieramy prawdziwe obiekty z bazy
+                List<Interest> realInterestsList = interestRepository.findAllById(interestIds);
+
+                // Zamieniamy na zbiór (Set) i przypisujemy użytkownikowi
+                existingUser.setInterests(new HashSet<>(realInterestsList));
+            }
+
+            return userRepository.save(existingUser);
+        }).orElseThrow(() -> new RuntimeException("Nie znaleziono usera"));
+    }
+    // -------------------------------------
 
     public List<User> getAllUsers() {
         return userRepository.findAll();
@@ -45,6 +81,6 @@ public class UserService {
 
     public User findByEmail(String email) {
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Nie znaleziono użytkownika o emailu: " + email)); //Wyrzucenie błędu przy wyjątku
+                .orElseThrow(() -> new RuntimeException("Nie znaleziono użytkownika: " + email));
     }
 }

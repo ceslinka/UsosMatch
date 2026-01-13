@@ -92,6 +92,28 @@ public class MatchingService {
         return score;
     }
 
+    public void acceptMatch(Long matchId){
+        // 1. Znajdź mecz lub wyrzuć błąd (tak jak przy Userze)
+        Match match = matchRepository.findById(matchId)
+                .orElseThrow(() -> new RuntimeException("Nie znaleziono takiego matcha!"));
 
+        // 2. Użyj settera, żeby zmienić status
+        match.setStatus(MatchStatus.MATCHED);
+
+        // 3. Zapisz ZMIENIONY obiekt (wstaw go do nawiasu)
+        matchRepository.save(match);
+    }
+
+    public void rejectMatch(Long matchId){
+        // 1. Znajdź mecz lub wyrzuć błąd (tak jak przy Userze)
+        Match match = matchRepository.findById(matchId)
+                .orElseThrow(() -> new RuntimeException("Nie znaleziono takiego matcha!"));
+
+        // 2. Użyj settera, żeby zmienić status
+        match.setStatus(MatchStatus.REJECTED);
+
+        // 3. Zapisz ZMIENIONY obiekt (wstaw go do nawiasu)
+        matchRepository.save(match);
+    }
 
 }

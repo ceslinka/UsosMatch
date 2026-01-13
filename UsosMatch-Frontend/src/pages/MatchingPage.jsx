@@ -31,11 +31,32 @@ const MatchingPage = () => {
         });
   }, []);
 
-  const handleDecision = (decision) => {
-      if (currentIndex < matches.length) {
-          setCurrentIndex(prev => prev + 1);
-      }
-  };
+ const handleDecision = (decision) => {
+       // 1. Zabezpieczenie (żeby nie kliknąć jak nic nie ma)
+       if (matches.length === 0 || !matches[currentIndex]) return;
+
+       const matchId = matches[currentIndex].id; // Pobieramy ID matcha z obiektu
+
+       // 2. Wybieramy końcówkę adresu (accept lub reject)
+       // decision to "accept" (zielony) lub "reject" (czerwony)
+       const action = decision === "accept" ? "accept" : "reject";
+
+       console.log(`Wysyłam decyzję: ${decision} dla matcha ID: ${matchId}`);
+
+       // 3. Strzał do Backendu (nie czekamy na odpowiedź z przewijaniem, żeby było płynnie)
+       fetch(`http://localhost:8080/api/matches/${matchId}/${action}`, {
+           method: 'POST'
+       }).then(res => {
+           if (res.ok) console.log("Status zmieniony w bazie!");
+           else console.error("Błąd zapisu w bazie");
+       });
+
+       // 4. Przejście do następnej karty (wizualne)
+       if (currentIndex < matches.length) {
+           setCurrentIndex(prev => prev + 1);
+       }
+   };
+
 
   // --- BEZPIECZEŃSTWO PRZED PUSTĄ LISTĄ ---
   if (!loading && (!matches || matches.length === 0 || currentIndex >= matches.length)) {

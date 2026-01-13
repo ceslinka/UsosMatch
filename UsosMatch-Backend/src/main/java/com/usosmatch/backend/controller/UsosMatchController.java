@@ -43,4 +43,13 @@ public class UsosMatchController {
         userService.deleteUser(id);
     }
 
+    @PostMapping("/matches/{matchId}/accept")
+    public void acceptMatch(@PathVariable Long matchId) {
+        matchingService.acceptMatch(matchId);
+    }
+
+    @PostMapping("/matches/{matchId}/reject")
+    public void rejectMatch(@PathVariable Long matchId) {
+        matchingService.rejectMatch(matchId);
+    }
 }

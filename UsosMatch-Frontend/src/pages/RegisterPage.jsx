@@ -4,9 +4,9 @@ import { User, Mail, University, ChevronRight, LogIn } from 'lucide-react';
 
 const RegisterPage = () => {
   const navigate = useNavigate();
-  const [isLoginMode, setIsLoginMode] = useState(false); // NOWOŚĆ: Tryb Logowania vs Rejestracji
+  const [isLoginMode, setIsLoginMode] = useState(false);
 
-  // Dane do rejestracji
+  // Dane do rejestracji (Domyślnie MALE)
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -16,14 +16,12 @@ const RegisterPage = () => {
     description: ''
   });
 
-  // Dane do logowania (tylko email)
   const [loginEmail, setLoginEmail] = useState('');
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // --- LOGIKA REJESTRACJI (BEZ ZMIAN) ---
   const handleRegister = (e) => {
     e.preventDefault();
     fetch('http://localhost:8080/api/users', {
@@ -35,30 +33,30 @@ const RegisterPage = () => {
       if (response.ok) {
         const user = await response.json();
         localStorage.setItem("myUserId", user.id);
-        alert("Zarejestrowano!");
+        alert("Zarejestrowano pomyślnie!");
         navigate('/profile');
       } else {
-        alert("Błąd rejestracji! Email może być zajęty.");
+        alert("Błąd rejestracji! Email może być zajęty lub dane są błędne.");
       }
     })
     .catch(err => console.error(err));
   };
 
-  // --- LOGIKA LOGOWANIA (NOWA) ---
   const handleLogin = (e) => {
     e.preventDefault();
-    // Uderzamy do Twojego nowego endpointu w Javie
     fetch(`http://localhost:8080/api/users/search?email=${loginEmail}`)
         .then(async (response) => {
             if (response.ok) {
                 const user = await response.json();
-                console.log("Znaleziono:", user);
-                // Zapisujemy ID istniejącego użytkownika!
-                localStorage.setItem("myUserId", user.id);
-                alert("Witaj z powrotem, " + user.firstName + "!");
-                navigate('/profile');
+                if(user) {
+                    localStorage.setItem("myUserId", user.id);
+                    alert("Witaj z powrotem, " + user.firstName + "!");
+                    navigate('/profile');
+                } else {
+                    alert("Backend nie zwrócił użytkownika (null).");
+                }
             } else {
-                alert("Nie znaleziono takiego maila w bazie. Zarejestruj się.");
+                alert("Nie znaleziono takiego maila w bazie. Sprawdź pisownię lub zarejestruj się.");
             }
         })
         .catch(err => console.error(err));
@@ -74,7 +72,7 @@ const RegisterPage = () => {
         </p>
       </div>
 
-      {/* PRZEŁĄCZNIK TRYBÓW */}
+      {/* ZAKŁADKI */}
       <div style={{ display: 'flex', gap: '20px', marginBottom: '20px' }}>
           <button onClick={() => setIsLoginMode(false)} style={isLoginMode ? inactiveTab : activeTab}>Rejestracja</button>
           <button onClick={() => setIsLoginMode(true)} style={isLoginMode ? activeTab : inactiveTab}>Logowanie</button>
@@ -91,7 +89,7 @@ const RegisterPage = () => {
       }}>
 
         {isLoginMode ? (
-            /* --- FORMULARZ LOGOWANIA --- */
+            /* --- LOGOWANIE --- */
             <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                 <div className="input-group">
                     <Mail size={18} color="#6366f1" style={{ marginBottom: '5px' }}/>
@@ -103,14 +101,31 @@ const RegisterPage = () => {
                 <button type="submit" style={buttonStyle}>Zaloguj <LogIn size={20} /></button>
             </form>
         ) : (
-            /* --- FORMULARZ REJESTRACJI --- */
+            /* --- REJESTRACJA (Z PRZYWRÓCONĄ PŁCIĄ) --- */
             <form onSubmit={handleRegister} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                {/* Tu wklej pola z poprzedniego kodu: Imię, Nazwisko... skróciłem dla czytelności */}
+
                 <input name="firstName" placeholder="Imię" value={formData.firstName} onChange={handleChange} required style={inputStyle}/>
                 <input name="lastName" placeholder="Nazwisko" onChange={handleChange} required style={inputStyle}/>
-                <input name="email" type="email" placeholder="Email" onChange={handleChange} required style={inputStyle}/>
-                <input name="universityName" placeholder="Uczelnia" defaultValue="AGH" onChange={handleChange} style={inputStyle}/>
-                <textarea name="description" placeholder="Opis..." onChange={handleChange} style={inputStyle}/>
+                <input name="email" type="email" placeholder="Email studencki" onChange={handleChange} required style={inputStyle}/>
+
+                {/* -- PRZYWRÓCONA SEKCJA PŁCI I UCZELNI -- */}
+                <div style={{ display: 'flex', gap: '10px' }}>
+                    <input
+                        name="universityName"
+                        placeholder="Uczelnia"
+                        defaultValue="AGH"
+                        onChange={handleChange}
+                        style={{ ...inputStyle, flex: 2 }}
+                    />
+                    <select name="gender" onChange={handleChange} style={{ ...inputStyle, flex: 1, padding: '12px 5px' }}>
+                        <option value="MALE">On</option>
+                        <option value="FEMALE">Ona</option>
+                        <option value="OTHER">Inne</option>
+                    </select>
+                </div>
+                {/* -------------------------------------- */}
+
+                <textarea name="description" placeholder="Napisz coś o sobie..." onChange={handleChange} style={{...inputStyle, fontFamily: 'inherit'}}/>
 
                 <button type="submit" style={buttonStyle}>Stwórz Konto <ChevronRight size={20} /></button>
             </form>
@@ -122,7 +137,7 @@ const RegisterPage = () => {
 };
 
 // --- Style ---
-const inputStyle = { width: '100%', padding: '12px', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.1)', outline: 'none', background: 'rgba(255,255,255,0.8)' };
+const inputStyle = { width: '100%', padding: '12px', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.1)', outline: 'none', background: 'rgba(255,255,255,0.8)', boxSizing: 'border-box' };
 const buttonStyle = { padding: '15px', borderRadius: '15px', border: 'none', backgroundColor: '#6366f1', color: 'white', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' };
 const activeTab = { padding: '8px 16px', background: '#6366f1', color: 'white', border: 'none', borderRadius: '20px', cursor: 'pointer', fontWeight: 'bold' };
 const inactiveTab = { padding: '8px 16px', background: 'transparent', color: '#888', border: '1px solid #ccc', borderRadius: '20px', cursor: 'pointer' };

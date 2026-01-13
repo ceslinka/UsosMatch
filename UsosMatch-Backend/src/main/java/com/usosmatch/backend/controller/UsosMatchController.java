@@ -33,8 +33,8 @@ public class UsosMatchController {
         return userService.getAllUsers();
     }
 
-    @PostMapping("/matches/generate")
-    public List<Match> generateUserMatches(@RequestParam Long userId) {
+    @GetMapping("/matches/{userId}")
+    public List<Match> getUserMatches(@PathVariable Long userId) { // ZMIANA: @PathVariable
         return matchingService.generateMatches(userId);
     }
 

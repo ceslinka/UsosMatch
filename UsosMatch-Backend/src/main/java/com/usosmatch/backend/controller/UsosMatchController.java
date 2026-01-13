@@ -23,6 +23,11 @@ public class UsosMatchController {
         return userService.registerUser(user);
     }
 
+    @GetMapping("/users/search")
+    public User getUserByEmail(@RequestParam String email) {
+        return userService.findByEmail(email);
+    }
+
     @GetMapping("/users")
     public List<User> getUsers() {
         return userService.getAllUsers();

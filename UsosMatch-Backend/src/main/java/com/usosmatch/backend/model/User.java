@@ -26,7 +26,6 @@ public class User {
     private Gender gender;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnore
     private List<TimeSlot> schedule = new ArrayList<>();
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL) //Pozwala aby user mial wiele zainteresowan i zainteresowanie mialo weiele userow

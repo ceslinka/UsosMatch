@@ -1,32 +1,49 @@
-import { Link } from "react-router-dom";
+import { NavLink } from 'react-router-dom';
+import { User, Flame, MessageCircle, LogIn } from 'lucide-react'; // Ikony
 
-function Navbar() {
-    // Prosty styl, żeby wyglądało czytelnie
-    const navStyle = {
-        background: "#2c3e50",
-        padding: "1rem",
-        display: "flex",
-        gap: "20px",
-        color: "white"
-    };
+const Navbar = () => {
+  return (
+    // Główny kontener paska - przyklejony do dołu (position: fixed)
+    <nav style={{
+      position: 'fixed',
+      bottom: '20px',        // 20px od dołu ekranu
+      left: '50%',           // Na środku w poziomie
+      transform: 'translateX(-50%)', // Centrowanie
 
-    const linkStyle = {
-        color: "white",
-        textDecoration: "none",
-        fontWeight: "bold"
-    };
+      // EFEKT SZKŁA (GLASSMORPHISM) ✨
+      backgroundColor: 'rgba(255, 255, 255, 0.8)', // Biały, ale prześwitujący
+      backdropFilter: 'blur(10px)', // Rozmycie tła pod spodem
 
-    return (
-        <nav style={navStyle}>
-            <span style={{ color: "#27ae60", fontSize: "1.2rem" }}>USOS Match</span>
+      padding: '10px 30px',
+      borderRadius: '30px',  // Mocno zaokrąglone rogi (jak pastylka)
+      boxShadow: '0 10px 30px rgba(0,0,0,0.1)', // Delikatny cień
+      display: 'flex',       // Ikony obok siebie
+      gap: '40px',           // Odstęp między ikonami
+      zIndex: 1000           // Zawsze na wierzchu
+    }}>
 
-            {/* Linki zamiast tagów <a>, żeby nie przeładowywać strony */}
-            <Link to="/" style={linkStyle}>Rejestracja</Link>
-            <Link to="/profile" style={linkStyle}>Mój Profil</Link>
-            <Link to="/match" style={linkStyle}>Szukaj Pary</Link>
-            <Link to="/list" style={linkStyle}>Moje Matche</Link>
-        </nav>
-    );
-}
+      {/* Link 1: Rejestracja/Logowanie */}
+      <NavLink to="/" style={({ isActive }) => ({ color: isActive ? '#6366f1' : '#888' })}>
+        <LogIn size={28} />
+      </NavLink>
+
+      {/* Link 2: Szukanie Pary (Główny) */}
+      <NavLink to="/match" style={({ isActive }) => ({ color: isActive ? '#6366f1' : '#888' })}>
+        <Flame size={28} />
+      </NavLink>
+
+      {/* Link 3: Moje Pary (Lista) */}
+      <NavLink to="/list" style={({ isActive }) => ({ color: isActive ? '#6366f1' : '#888' })}>
+        <MessageCircle size={28} />
+      </NavLink>
+
+      {/* Link 4: Profil */}
+      <NavLink to="/profile" style={({ isActive }) => ({ color: isActive ? '#6366f1' : '#888' })}>
+        <User size={28} />
+      </NavLink>
+
+    </nav>
+  );
+};
 
 export default Navbar;

@@ -10,6 +10,7 @@ import java.util.List;
 
 @RestController // Zwracamy JSON
 @RequestMapping("/api")
+@CrossOrigin(origins = "http://localhost:5173")
 public class UsosMatchController {
     private final UserService userService;
     private final MatchingService matchingService;
@@ -65,5 +66,18 @@ public class UsosMatchController {
     @PutMapping("/users/{id}")
     public User updateUser(@PathVariable Long id, @RequestBody User user) {
         return userService.updateUser(id, user);
+    }
+    @PostMapping("/login")
+    public User login(@RequestBody User loginData) {
+        // 1. Szukamy użytkownika po emailu
+        User user = userService.findByEmail(loginData.getEmail());
+
+        // 2. Jeśli user istnieje I hasło się zgadza -> zwracamy usera
+        if (user != null && user.getPassword().equals(loginData.getPassword())) {
+            return user;
+        } else {
+            // 3. Jeśli nie -> rzucamy błąd (Frontend to obsłuży)
+            throw new RuntimeException("Błędny login lub hasło!");
+        }
     }
 }

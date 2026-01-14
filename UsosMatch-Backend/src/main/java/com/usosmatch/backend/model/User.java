@@ -23,6 +23,7 @@ public class User {
     private String description;
     private LocalDate dateOfBirth;
     private int height;
+    private String password;
 
     @Enumerated(EnumType.STRING)
     private Gender gender;
@@ -121,6 +122,13 @@ public class User {
 
     public void setHeight(int height) {
         this.height = height;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+    public void setPassword(String password) {
+        this.password = password;
     }
 }
 

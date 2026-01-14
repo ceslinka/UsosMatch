@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
-import { MessageCircle, User, Phone, Video } from 'lucide-react'; // Ikonki akcji
+import { MessageCircle, User} from 'lucide-react'; // Ikonki akcji
 
-const MatchesListPage = () => {
-  const [matches, setMatches] = useState([]);
-  const [loading, setLoading] = useState(true);
+const MatchesListPage = () => { // tworzymy nową funkcję(stronę)
+  const [matches, setMatches] = useState([]); // dzieki useState po odświeżeniu mamy nadal nasz matche, setmatches generuje sie automatycznie
+  const [loading, setLoading] = useState(true);  // dopiero gdy przyjdą dane z backendu znika nam 'loading'
   const [myId, setMyId] = useState(null);
 
   useEffect(() => {
-    const storedId = localStorage.getItem("myUserId");
+    const storedId = localStorage.getItem("myUserId"); // zapamiętujemy id
     if (!storedId) {
         window.location.href = "/";
         return;

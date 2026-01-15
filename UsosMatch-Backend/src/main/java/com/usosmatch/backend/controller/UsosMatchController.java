@@ -49,8 +49,8 @@ public class UsosMatchController {
     }
 
     @PostMapping("/matches/{matchId}/accept")
-    public void acceptMatch(@PathVariable Long matchId) {
-        matchingService.acceptMatch(matchId);
+    public void acceptMatch(@PathVariable Long matchId, @RequestParam Long userId) {
+        matchingService.acceptMatch(matchId, userId);
     }
 
     @PostMapping("/matches/{matchId}/reject")

@@ -4,6 +4,8 @@ import RegisterPage from './pages/RegisterPage';
 import ProfilePage from './pages/ProfilePage';
 import MatchingPage from './pages/MatchingPage';
 import MatchesListPage from './pages/MatchesListPage';
+import ChatPage from './pages/ChatPage';
+
 // Importujemy menu nawigacyjne
 import Navbar from './components/Navbar';
 
@@ -21,6 +23,8 @@ function App() {
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/match" element={<MatchingPage />} />
         <Route path="/list" element={<MatchesListPage />} />
+          <Route path="/chat" element={<div>Wybierz kogś z listy!</div>} />
+          <Route path="/chat:/partnerID" element={<ChatPage />} />
       </Routes>
 
       {/* 2. MENU NA DOLE (Jest zawsze widoczne, bo jest POZA <Routes>) */}

@@ -25,7 +25,12 @@ public class Message {
         this.content = content;
         this.timestamp = timestamp;
     }
-
+    public Message(Long senderId, Long receiverId, String content) {
+        this.senderId = senderId;
+        this.receiverId = receiverId;
+        this.content = content;
+        this.timestamp = LocalDateTime.now();
+    }
     public Long getId(){
         return id;
     }

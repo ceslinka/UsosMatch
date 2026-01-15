@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { MessageCircle, User} from 'lucide-react'; // Ikonki akcji
 
 const MatchesListPage = () => { // tworzymy nową funkcję(stronę)
+    const navigate = useNavigate();
   const [matches, setMatches] = useState([]); // dzieki useState po odświeżeniu mamy nadal nasz matche, setmatches generuje sie automatycznie
   const [loading, setLoading] = useState(true);  // dopiero gdy przyjdą dane z backendu znika nam 'loading'
   const [myId, setMyId] = useState(null);
@@ -36,11 +38,10 @@ const MatchesListPage = () => { // tworzymy nową funkcję(stronę)
       if (match.user1.id === myId) return match.user2;
       return match.user1;
   };
+    const handleChat = (partnerId) => {
+        navigate(`/chat/${partnerId}`); // <--- Przekierowanie!
+    };
 
-  // Funkcja tymczasowa (bo nie mamy websocketów/czatu na backendzie)
-  const handleChat = (name) => {
-      alert(`Otwieram czat z użytkownikiem: ${name} (Coming soon!)`);
-  };
 
   if (loading) return <div style={{textAlign:'center', marginTop:'50px'}}>Ładowanie rozmów...</div>;
 
@@ -66,7 +67,8 @@ const MatchesListPage = () => { // tworzymy nową funkcję(stronę)
                   if (!partner) return null;
 
                   return (
-                    <div key={match.id} style={listItemStyle} onClick={() => handleChat(partner.firstName)}>
+                      // POPRAWNA WERSJA:
+                      <div key={match.id} style={listItemStyle} onClick={() => handleChat(partner.id)}>
 
                         {/* Avatar */}
                         <div style={avatarStyle}>
@@ -79,10 +81,10 @@ const MatchesListPage = () => { // tworzymy nową funkcję(stronę)
                             <p style={{ margin: 0, fontSize: '12px', color: '#666' }}>{partner.universityName}</p>
                         </div>
 
-                        {/* Ikony akcji (fake) */}
-                        <div style={{ display: 'flex', gap: '10px' }}>
-                            <div style={iconBtnStyle}><Phone size={18}/></div>
-                            <div style={iconBtnStyle}><Video size={18}/></div>
+
+                        {/* Ikona dymku (zamiast telefonu) */}
+                        <div style={iconBtnStyle}>
+                            <MessageCircle size={20} />
                         </div>
 
                     </div>

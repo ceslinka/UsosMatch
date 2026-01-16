@@ -1,3 +1,4 @@
+import InfoModal from '../components/InfoModal';
 import { useState, useEffect } from 'react';
 import { Calendar, Clock, Plus, UserCircle, X, Save, Ruler, Tag, FileText } from 'lucide-react';
 
@@ -5,60 +6,60 @@ const ProfilePage = () => {
   const [userId, setUserId] = useState(null);
   const [userName, setUserName] = useState("");
 
-  // --- SEKCYJA 1: DANE PROFILOWE (Wzrost, Wiek, Opis) ---
+  // Dane profilowe
   const [details, setDetails] = useState({
       height: '',
-      dateOfBirth: '', // HTML input date zwraca string "YYYY-MM-DD"
+      dateOfBirth: '',
       description: ''
   });
 
-  // Hobby: Lista dostępnych (pobrana z Javy) i lista zaznaczonych (ID)
+  // --- MODAL: Stan i Funkcja ---
+  const [modal, setModal] = useState({ isOpen: false, type: 'success', title: '', message: '' });
+
+  const showModal = (type, title, message) => {
+      setModal({ isOpen: true, type, title, message });
+  };
+  // -----------------------------
+
+  // Hobby
   const [availableInterests, setAvailableInterests] = useState([]);
   const [selectedInterestIds, setSelectedInterestIds] = useState([]);
 
-  // --- SEKCJA 2: GRAFIK (Czas) ---
+  // Grafik
   const [day, setDay] = useState("MONDAY");
   const [start, setStart] = useState("08:00");
   const [end, setEnd] = useState("09:30");
   const [addedSlots, setAddedSlots] = useState([]);
 
-  // Słownik
   const daysPl = { MONDAY: "Poniedziałek", TUESDAY: "Wtorek", WEDNESDAY: "Środa", THURSDAY: "Czwartek", FRIDAY: "Piątek", SATURDAY: "Sobota", SUNDAY: "Niedziela" };
 
-  // --- START APLIKACJI (Pobieranie danych) ---
   useEffect(() => {
     const storedId = localStorage.getItem("myUserId");
     if (!storedId) { window.location.href = "/"; return; }
     setUserId(storedId);
 
-    // 1. Pobierz listę wszystkich dostępnych kafelków hobby (GET /api/interests)
+    // 1. Hobby
     fetch('http://localhost:8080/api/interests')
         .then(res => res.json())
         .then(data => setAvailableInterests(data))
         .catch(err => console.error("Błąd hobby:", err));
 
-    // 2. Pobierz aktualne dane Usera, żeby wypełnić formularz (GET /api/users)
+    // 2. User
     fetch('http://localhost:8080/api/users')
         .then(res => res.json())
         .then(users => {
             const me = users.find(u => u.id.toString() === storedId);
             if (me) {
                 setUserName(me.firstName);
-
-                // Wypełniamy pola istniejącymi danymi (lub pustymi, jeśli brak)
                 setDetails({
                     height: me.height || '',
                     dateOfBirth: me.dateOfBirth || '',
                     description: me.description || ''
                 });
-
-                // Zaznaczamy te hobby, które user już ma
                 if (me.interests) {
                     const ids = me.interests.map(i => i.id);
                     setSelectedInterestIds(ids);
                 }
-
-                // Wypełniamy grafik
                 setAddedSlots(me.schedule || []);
             } else {
                 localStorage.removeItem("myUserId");
@@ -67,7 +68,6 @@ const ProfilePage = () => {
         });
   }, []);
 
-  // --- FUNKCJA ZAPISYWANIA DANYCH OSOBOWYCH (PUT) ---
   const handleSaveProfile = () => {
       const payload = {
           height: details.height ? parseInt(details.height) : 0,
@@ -82,16 +82,17 @@ const ProfilePage = () => {
           body: JSON.stringify(payload)
       })
       .then(async res => {
-          if (res.ok) alert("Profil i pasje zapisane! ✅");
-          else {
-              const err = await res.text();
-              console.error(err);
-              alert("Błąd zapisu! Sprawdź konsolę.");
+          if (res.ok) {
+              // SUKCES MODAL
+              showModal('success', 'Zapisano!', 'Twój profil został zaktualizowany.');
+          } else {
+              // BŁĄD MODAL
+              const errorText = await res.text(); // Pobieramy treść błędu z backendu
+              showModal('error', 'Błąd Zapisu', errorText || "Nie udało się zapisać zmian.");
           }
       });
   };
 
-  // Logika "przełącznika" hobby (dodaj/usuń)
   const toggleInterest = (id) => {
       if (selectedInterestIds.includes(id)) {
           setSelectedInterestIds(selectedInterestIds.filter(i => i !== id));
@@ -100,16 +101,23 @@ const ProfilePage = () => {
       }
   };
 
-  // --- OBSŁUGA CZASU (Stara logika, odświeżony wygląd) ---
   const handleAddSlot = () => {
     const slotData = { dayOfWeek: day, startTime: start + ":00", endTime: end + ":00", freeTime: true };
+
     fetch(`http://localhost:8080/api/timeslots?userId=${userId}`, {
         method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(slotData)
     }).then(async res => {
-        if(res.ok) { const s = await res.json(); setAddedSlots([...addedSlots, s]); }
+        if(res.ok) {
+            const s = await res.json();
+            setAddedSlots([...addedSlots, s]);
+            // Opcjonalnie: też możesz dać modal, ale może być irytujące przy dodawaniu wielu godzin
+            // showModal('success', 'Dodano', 'Termin dodany do grafiku.');
+        }
         else {
             const errorJson = await res.json().catch(() => ({}));
-            alert(errorJson.message || "Błąd dodawania czasu! Sprawdź kolizje.");
+            const errorMsg = errorJson.message || "Błąd dodawania czasu! Sprawdź kolizje.";
+            // BŁĄD MODAL (Zamiast alert)
+            showModal('error', 'Kolizja!', errorMsg);
         }
     });
   };
@@ -120,6 +128,7 @@ const ProfilePage = () => {
   };
 
   return (
+    // Główny DIV
     <div style={{ height: '100vh', overflowY: 'auto', padding: '20px', paddingBottom: '120px' }}>
 
       <div style={{ maxWidth: '1100px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -135,10 +144,10 @@ const ProfilePage = () => {
             </div>
         </div>
 
-        {/* UKŁAD KOLUMN (Dashboard) */}
+        {/* DASHBOARD */}
         <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', alignItems: 'flex-start' }}>
 
-            {/* KOLUMNA LEWA: O Tobie */}
+            {/* LEWA KOLUMNA */}
             <div style={{ flex: 1, minWidth: '300px' }}>
                 <div style={{ ...cardStyle, height: '100%' }}>
                     <h3 style={{ margin: '0 0 15px 0', borderBottom:'1px solid #eee', paddingBottom:'10px', color:'#333' }}>
@@ -196,7 +205,7 @@ const ProfilePage = () => {
                 </div>
             </div>
 
-            {/* KOLUMNA PRAWA: Grafik */}
+            {/* PRAWA KOLUMNA */}
             <div style={{ flex: 1, minWidth: '300px' }}>
                 <div style={{ ...cardStyle, height: '100%' }}>
                     <h3 style={{ margin: '0 0 15px 0', borderBottom:'1px solid #eee', paddingBottom:'10px', color:'#333' }}>
@@ -231,9 +240,18 @@ const ProfilePage = () => {
             </div>
 
         </div>
-
       </div>
-    </div>
+
+      {/* --- TU JEST MODAL (Właściwe miejsce) --- */}
+      <InfoModal
+          isOpen={modal.isOpen}
+          onClose={() => setModal({ ...modal, isOpen: false })}
+          type={modal.type}
+          title={modal.title}
+          message={modal.message}
+      />
+
+    </div> // Zamknięcie głównego DIV
   );
 };
 

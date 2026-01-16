@@ -17,7 +17,7 @@ const MatchesListPage = () => { // tworzymy nową funkcję(stronę)
     setMyId(parseInt(storedId));
 
     // 1. Pobieramy wszystko z backendu
-    fetch(`http://localhost:8080/api/matches/${storedId}`)
+    fetch(`http://localhost:8080/api/matches/${storedId}/list`)
       .then(res => res.json())
       .then(data => {
         // 2. FILTRUJEMY! Chcemy tylko zaakceptowane pary (MATCHED)

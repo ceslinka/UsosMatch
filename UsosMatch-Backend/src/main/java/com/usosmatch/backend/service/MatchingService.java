@@ -56,6 +56,23 @@ public class MatchingService {
                 .collect(Collectors.toList());
     }
 
+
+
+    // Metoda specjalnie dla zakładki "Dymek/Czat"
+    // Zwraca TYLKO te, które są już parami (MATCHED)
+    public List<Match> getSuccessMatches(Long userId) {
+        User currentUser = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Nie znaleziono usera"));
+
+        List<Match> all = matchRepository.findAllForUser(currentUser);
+
+        // Filtrujemy: Bierzemy tylko te z sukcesem
+        return all.stream()
+                .filter(m -> m.getStatus() == MatchStatus.MATCHED)
+                .collect(Collectors.toList());
+    }
+
+
     private Match findExistingMatch(List<Match> existingMatches, User candidate) {
         for (Match m : existingMatches) {
             // Sprawdzamy: Czy w tym matchu "tą drugą osobą" jest nasz kandydat?
@@ -98,25 +115,55 @@ public class MatchingService {
     }
 
     public void acceptMatch(Long matchId, Long activeUserId) {
-        // 1. Znajdź mecz lub wyrzuć błąd (tak jak przy Userze)
+        // 1. Pobieramy mecz
         Match match = matchRepository.findById(matchId)
-                .orElseThrow(() -> new RuntimeException("Nie znaleziono takiego matcha!"));
+                .orElseThrow(() -> new RuntimeException("Nie znaleziono matcha!"));
 
-        boolean isUser1 = match.getUser1().getId().equals(activeUserId);
+        // Sprawdzenie tożsamości
+        Long user1Id = match.getUser1().getId();
+        boolean isUser1 = user1Id.equals(activeUserId);
 
-        if (match.getStatus() == MatchStatus.PENDING) {
+        System.out.println("--- ACCEPT MATCH DEBUG ---");
+        System.out.println("Mecz ID: " + matchId);
+        System.out.println("Obecny status: " + match.getStatus());
+        System.out.println("Kto klika? UserID=" + activeUserId + " (Czy to user1? " + isUser1 + ")");
+
+        // LOGIKA ZMIANY STATUSÓW (Uproszczona)
+        MatchStatus currentStatus = match.getStatus();
+
+        if (currentStatus == MatchStatus.PENDING) {
+            // Pierwszy ruch
             if (isUser1) {
                 match.setStatus(MatchStatus.LIKED_BY_USER_1);
+                System.out.println("-> Zmieniono na: LIKED_BY_USER_1");
             } else {
                 match.setStatus(MatchStatus.LIKED_BY_USER_2);
+                System.out.println("-> Zmieniono na: LIKED_BY_USER_2");
             }
-        } else if (match.getStatus().equals(MatchStatus.LIKED_BY_USER_1) && !isUser1) {
-            match.setStatus(MatchStatus.MATCHED);
-
-        } else if (match.getStatus().equals(MatchStatus.LIKED_BY_USER_2) && isUser1) {
-            match.setStatus(MatchStatus.MATCHED);
         }
+        else if (currentStatus == MatchStatus.LIKED_BY_USER_1) {
+            // Sytuacja: User 1 już dał Like
+            if (!isUser1) {
+                // Klika User 2 (to ten, co jeszcze nie klikał) -> MATCH!
+                match.setStatus(MatchStatus.MATCHED);
+                System.out.println("-> MAMY PARĘ! Status: MATCHED");
+            } else {
+                System.out.println("-> User 1 klika drugi raz. Bez zmian.");
+            }
+        }
+        else if (currentStatus == MatchStatus.LIKED_BY_USER_2) {
+            // Sytuacja: User 2 już dał Like
+            if (isUser1) {
+                // Klika User 1 (to ten, co jeszcze nie klikał) -> MATCH!
+                match.setStatus(MatchStatus.MATCHED);
+                System.out.println("-> MAMY PARĘ! Status: MATCHED");
+            } else {
+                System.out.println("-> User 2 klika drugi raz. Bez zmian.");
+            }
+        }
+
         matchRepository.save(match);
+        System.out.println("--------------------------");
     }
 
 

@@ -25,17 +25,39 @@ const MatchingPage = () => {
         .catch(err => { console.error(err); setLoading(false); });
   }, []);
 
-  const handleDecision = (decision) => {
-      if (matches.length === 0 || !matches[currentIndex]) return;
-      const matchId = matches[currentIndex].id;
-      const action = decision === "accept" ? "accept" : "reject";
+ const handleDecision = (decision) => {
+       // Zabezpieczenie przed klikaniem w pustkę
+       if (matches.length === 0 || !matches[currentIndex]) return;
 
-      fetch(`http://localhost:8080/api/matches/${matchId}/${action}`, { method: 'POST' });
+       const currentMatch = matches[currentIndex];
+       const matchId = currentMatch.id;
+       const action = decision === "accept" ? "accept" : "reject";
 
-      if (currentIndex < matches.length) {
-          setCurrentIndex(prev => prev + 1);
-      }
-  };
+       // LOGOWANIE DLA CIEBIE (Sprawdź w konsoli F12, czy myId nie jest puste!)
+       console.log(`Akcja: ${action}, MatchID: ${matchId}, MojeID: ${myId}`);
+
+       if (!myId) {
+           alert("Błąd: Nie wiem kim jesteś (brak myId). Odśwież stronę.");
+           return;
+       }
+
+       // --- KLUCZOWA NAPRAWA BŁĘDU ---
+       // Dodajemy ?userId=${myId} do adresu URL
+       fetch(`http://localhost:8080/api/matches/${matchId}/${action}?userId=${myId}`, {
+           method: 'POST'
+       }).then(res => {
+           if (res.ok) {
+               console.log("Sukces! Status zmieniony.");
+           } else {
+               console.error("Błąd Backend:", res.status);
+           }
+       });
+
+       // Przesuwamy kartę wizualnie
+       if (currentIndex < matches.length) {
+           setCurrentIndex(prev => prev + 1);
+       }
+   };
 
   // --- Helper: Obliczanie wieku ---
   const calculateAge = (dateString) => {

@@ -80,4 +80,10 @@ public class UsosMatchController {
             throw new RuntimeException("Błędny login lub hasło!");
         }
     }
+
+    // Endpoint dla listy w "Dymku"
+    @GetMapping("/matches/{userId}/list")
+    public List<Match> getSuccessMatches(@PathVariable Long userId) {
+        return matchingService.getSuccessMatches(userId);
+    }
 }

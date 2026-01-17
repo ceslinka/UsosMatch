@@ -1,188 +1,154 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Mail, University, ChevronRight, LogIn, Lock } from 'lucide-react';
+import { Mail, ChevronRight, LogIn, Lock } from 'lucide-react';
+// IMPORT MODALA
+import InfoModal from '../components/InfoModal';
 
 const RegisterPage = () => {
-    const navigate = useNavigate();
-    const [isLoginMode, setIsLoginMode] = useState(false);
+  const navigate = useNavigate();
+  const [isLoginMode, setIsLoginMode] = useState(false);
+  const [loginEmail, setLoginEmail] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
 
-    // Dane do rejestracji
-    const [formData, setFormData] = useState({
-        firstName: '',
-        lastName: '',
-        email: '',
-        password: '',
-        universityName: 'AGH',
-        gender: 'MALE',
-        description: ''
-    });
+  // CONFIG MODALA
+  const [modal, setModal] = useState({ isOpen: false, type: 'success', title: '', message: '' });
+  const showModal = (type, title, message) => setModal({ isOpen: true, type, title, message });
 
-    // Dane do logowania
-    const [loginData, setLoginData] = useState({
-        email: '',
-        password: ''
-    });
+  // DANE REJESTRACJI
+  const defaultFormData = {
+    firstName: '', lastName: '', email: '', password: '', universityName: 'AGH', gender: 'MALE', description: ''
+  };
+  const [formData, setFormData] = useState(defaultFormData);
 
-    const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
-    };
+  const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
-    const handleLoginChange = (e) => {
-        setLoginData({ ...loginData, [e.target.name]: e.target.value });
-    };
+  // --- NOWA FUNKCJA: Przełączanie zakładek z czyszczeniem ---
+  const switchMode = (toLogin) => {
+      setIsLoginMode(toLogin);
+      // Czyścimy wszystko, żeby dane nie skakały między polami!
+      setFormData(defaultFormData);
+      setLoginEmail('');
+      setLoginPassword('');
+  };
 
-    const handleRegister = (e) => {
-        e.preventDefault();
-        fetch('http://localhost:8080/api/users', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(formData)
-        })
-            .then(async (response) => {
-                if (response.ok) {
-                    const user = await response.json();
-                    localStorage.setItem("myUserId", user.id);
-                    alert("Zarejestrowano pomyślnie!");
-                    navigate('/profile');
-                } else {
-                    alert("Błąd rejestracji! Email może być zajęty lub dane są błędne.");
-                }
-            })
-            .catch(err => console.error(err));
-    };
+  // --- LOGOWANIE ---
+  const handleLogin = (e) => {
+    e.preventDefault();
+    fetch(`http://localhost:8080/api/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: loginEmail.trim(), password: loginPassword })
+    })
+    .then(async (response) => {
+        if (response.ok) {
+            const user = await response.json();
+            localStorage.setItem("myUserId", user.id);
+            navigate('/profile');
+        } else {
+            showModal('login', 'Błąd logowania', 'Nieprawidłowy email lub hasło.');
+        }
+    })
+    .catch(() => showModal('error', 'Błąd sieci', 'Brak połączenia z serwerem.'));
+  };
 
-    const handleLogin = (e) => {
-        e.preventDefault();
-        fetch('http://localhost:8080/api/login', {
-            method: 'POST',
-            headers : {'Content-Type': 'application/json'},
-            body: JSON.stringify(loginData)
-        })
-            .then(async (response) => {
-                if (response.ok) {
-                    const user = await response.json();
-                    if(user) {
-                        localStorage.setItem("myUserId", user.id);
-                        alert("Witaj z powrotem, " + user.firstName + "!");
-                        navigate('/profile');
-                    } else {
-                        alert("Backend nie zwrócił użytkownika (null).");
-                    }
-                } else {
-                    alert("Nie znaleziono takiego maila w bazie lub błędne hasło.");
-                }
-            })
-            .catch(err => console.error(err));
+  // --- REJESTRACJA (Z POPRAWKĄ JSON) ---
+  const handleRegister = (e) => {
+    e.preventDefault();
+
+    if(!formData.password || formData.password.length < 3) {
+        showModal('error', 'Słabe hasło', 'Hasło musi mieć minimum 3 znaki!');
+        return;
     }
 
-    return (
-        <div style={{ marginTop: '-50px', padding: '20px', paddingBottom: '100px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+    fetch('http://localhost:8080/api/users', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formData)
+    })
+    .then(async (res) => {
+      if (res.ok) {
+        const user = await res.json();
+        localStorage.setItem("myUserId", user.id);
+        navigate('/profile');
+      } else {
+        // 🔥 TUTAJ BYŁ PROBLEM Z "KRZACZKAMI" 🔥
+        // Próbujemy odczytać odpowiedź jako JSON, żeby wyciągnąć pole "message"
+        try {
+            const errorJson = await res.json();
+            // Jeśli backend wysłał {"message": "Email zajęty"}, to bierzemy to.
+            // Jeśli nie ma pola message, to bierzemy ogólny błąd.
+            const cleanMessage = errorJson.message || "Wystąpił błąd po stronie serwera.";
+            showModal('error', 'Ups!', cleanMessage);
+        } catch (parseError) {
+            // Jeśli to nie był JSON, tylko zwykły tekst
+            showModal('error', 'Ups!', "Błąd rejestracji (nieznany).");
+        }
+      }
+    })
+    .catch(() => showModal('error', 'Błąd sieci', 'Serwer nie odpowiada.'));
+  };
 
-            <div style={{ marginTop: '40px', marginBottom: '20px', textAlign: 'center' }}>
-                <h1 style={{ margin: 0, color: '#6366f1' }}>UsosMatch</h1>
-                <p style={{ color: '#888' }}>
-                    {isLoginMode ? "Wróć do gry" : "Stwórz profil, by znaleźć parę"}
-                </p>
-            </div>
+  return (
+    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
 
-            {/* ZAKŁADKI */}
-            <div style={{ display: 'flex', gap: '20px', marginBottom: '20px' }}>
-                <button onClick={() => setIsLoginMode(false)} style={isLoginMode ? inactiveTab : activeTab}>Rejestracja</button>
-                <button onClick={() => setIsLoginMode(true)} style={isLoginMode ? activeTab : inactiveTab}>Logowanie</button>
-            </div>
+      {/* Przełącznik Zakładek */}
+      <div style={{ display: 'flex', gap: '15px', marginBottom: '20px', zIndex: 10 }}>
+          {/* Używamy nowej funkcji switchMode do czyszczenia pól */}
+          <button onClick={() => switchMode(false)} style={!isLoginMode ? activeTab : inactiveTab}>Rejestracja</button>
+          <button onClick={() => switchMode(true)} style={isLoginMode ? activeTab : inactiveTab}>Logowanie</button>
+      </div>
 
-            <div style={{
-                background: 'rgba(255,255,255, 0.7)',
-                backdropFilter: 'blur(20px)',
-                borderRadius: '25px',
-                padding: '30px',
-                width: '100%',
-                maxWidth: '400px',
-                boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
-            }}>
+      <div style={formContainerStyle}>
+        <h2 style={{ textAlign:'center', color: '#6366f1', marginTop:0 }}>{isLoginMode ? "Witaj ponownie" : "Załóż Profil"}</h2>
 
-                {isLoginMode ? (
-                    /* --- LOGOWANIE --- */
-                    <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                        <div style={inputGroupStyle}>
-                            <Mail size={18} color="#6366f1" />
-                            <input
-                                name="email"
-                                type="email"
-                                placeholder="Wpisz swój email..."
-                                required
-                                style={inputStyle}
-                                value={loginData.email}
-                                onChange={handleLoginChange}
-                            />
-                        </div>
-                        {/* Naprawione: Dodano pole hasła do logowania */}
-                        <div style={inputGroupStyle}>
-                            <Lock size={18} color="#6366f1" />
-                            <input
-                                name="password"
-                                type="password"
-                                placeholder="Hasło..."
-                                required
-                                style={inputStyle}
-                                value={loginData.password}
-                                onChange={handleLoginChange}
-                            />
-                        </div>
-                        <button type="submit" style={buttonStyle}>Zaloguj <LogIn size={20} /></button>
-                    </form>
-                ) : (
-                    /* --- REJESTRACJA --- */
-                    <form onSubmit={handleRegister} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+        {isLoginMode ? (
+            /* --- FORMULARZ LOGOWANIA --- */
+            <form onSubmit={handleLogin} style={formStyle}>
+                <div style={inputGroupStyle}>
+                    <Mail size={18} color="#6366f1"/>
+                    <input type="email" placeholder="Email..." required style={inputStyle} value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)} />
+                </div>
+                <div style={inputGroupStyle}>
+                    <Lock size={18} color="#6366f1"/>
+                    <input type="password" placeholder="Hasło..." required style={inputStyle} value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} />
+                </div>
+                <button type="submit" style={mainButtonStyle}>Zaloguj się <LogIn size={20}/></button>
+            </form>
+        ) : (
+            /* --- FORMULARZ REJESTRACJI --- */
+            <form onSubmit={handleRegister} style={formStyle}>
+                <div style={{display:'flex', gap:'10px'}}>
+                    {/* Dodajemy autoComplete="off", żeby przeglądarka nie głupiała przy zmianie kart */}
+                    <input name="firstName" placeholder="Imię" onChange={handleChange} value={formData.firstName} required style={inputStyle} autoComplete="off"/>
+                    <input name="lastName" placeholder="Nazwisko" onChange={handleChange} value={formData.lastName} required style={inputStyle} autoComplete="off"/>
+                </div>
+                <input name="email" type="email" placeholder="Email" onChange={handleChange} value={formData.email} required style={inputStyle} autoComplete="off"/>
+                <input name="password" type="password" placeholder="Hasło (min. 3 znaki)" onChange={handleChange} value={formData.password} required style={{...inputStyle, border:'1px solid #6366f1'}} />
+                <div style={{display:'flex', gap:'10px'}}>
+                    <input name="universityName" defaultValue="AGH" onChange={handleChange} style={{...inputStyle, flex:2}} />
+                    <select name="gender" onChange={handleChange} style={{...inputStyle, flex:1, padding:'10px 5px'}}><option value="MALE">On</option><option value="FEMALE">Ona</option></select>
+                </div>
+                <textarea name="description" placeholder="Opis..." onChange={handleChange} value={formData.description} style={{...inputStyle, fontFamily:'inherit', height:'60px'}} />
+                <button type="submit" style={mainButtonStyle}>Stwórz Konto <ChevronRight size={20}/></button>
+            </form>
+        )}
+      </div>
 
-                        <input name="firstName" placeholder="Imię" value={formData.firstName} onChange={handleChange} required style={basicInputStyle}/>
-                        <input name="lastName" placeholder="Nazwisko" onChange={handleChange} required style={basicInputStyle}/>
+      <InfoModal
+          isOpen={modal.isOpen}
+          onClose={() => setModal({ ...modal, isOpen: false })}
+          type={modal.type} title={modal.title} message={modal.message}
+      />
 
-                        <div style={inputGroupStyle}>
-                            <Mail size={18} color="#6366f1" />
-                            <input name="email" type="email" placeholder="Email studencki" onChange={handleChange} required style={inputStyle}/>
-                        </div>
-
-                        <div style={inputGroupStyle}>
-                            <Lock size={18} color="#6366f1" />
-                            <input name="password" type="password" placeholder="Stwórz hasło" onChange={handleChange} required style={inputStyle}/>
-                        </div>
-
-                        {/* -- SEKCJA PŁCI I UCZELNI -- */}
-                        <div style={{ display: 'flex', gap: '10px' }}>
-                            <input
-                                name="universityName"
-                                placeholder="Uczelnia"
-                                defaultValue="AGH"
-                                onChange={handleChange}
-                                style={{ ...basicInputStyle, flex: 2 }}
-                            />
-                            <select name="gender" onChange={handleChange} style={{ ...basicInputStyle, flex: 1, padding: '12px 5px' }}>
-                                <option value="MALE">On</option>
-                                <option value="FEMALE">Ona</option>
-                                <option value="OTHER">Inne</option>
-                            </select>
-                        </div>
-
-                        <textarea name="description" placeholder="Napisz coś o sobie..." onChange={handleChange} style={{...basicInputStyle, fontFamily: 'inherit'}}/>
-
-                        <button type="submit" style={buttonStyle}>Stwórz Konto <ChevronRight size={20} /></button>
-                    </form>
-                )}
-
-            </div>
-        </div>
-    );
+    </div>
+  );
 };
 
-// --- Style ---
-// Naprawione style: basicInputStyle dla zwykłych pól, inputStyle dla pól z ikonką
-const inputGroupStyle = { display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(255,255,255,0.8)', padding: '0 12px', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.1)' };
-const inputStyle = { width: '100%', padding: '12px 0', border: 'none', outline: 'none', background: 'transparent' };
-const basicInputStyle = { width: '100%', padding: '12px', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.1)', outline: 'none', background: 'rgba(255,255,255,0.8)', boxSizing: 'border-box' };
-
-const buttonStyle = { padding: '15px', borderRadius: '15px', border: 'none', backgroundColor: '#6366f1', color: 'white', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' };
-const activeTab = { padding: '8px 16px', background: '#6366f1', color: 'white', border: 'none', borderRadius: '20px', cursor: 'pointer', fontWeight: 'bold' };
-const inactiveTab = { padding: '8px 16px', background: 'transparent', color: '#888', border: '1px solid #ccc', borderRadius: '20px', cursor: 'pointer' };
+// --- STYLES (Bez zmian - grafika taka sama) ---
+const formContainerStyle = { background: 'rgba(255, 255, 255, 0.9)', backdropFilter: 'blur(20px)', borderRadius: '24px', padding: '30px', width: '100%', maxWidth: '400px', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 40px rgba(0,0,0,0.1)' };
+const formStyle = { display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '10px' };
+const inputStyle = { width: '100%', padding: '14px', borderRadius: '12px', border: '1px solid #ddd', outline: 'none', fontSize: '14px', background: '#f9fafb', boxSizing:'border-box' };
+const inputGroupStyle = { display: 'flex', alignItems: 'center', gap: '10px', background: '#f9fafb', border: '1px solid #ddd', borderRadius: '12px', padding: '0 10px' };
+const mainButtonStyle = { padding: '16px', borderRadius: '14px', border: 'none', backgroundColor: '#6366f1', color: 'white', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', marginTop: '10px' };
+const activeTab = { padding: '10px 20px', borderRadius: '30px', border: 'none', background: '#6366f1', color: 'white', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 4px 10px rgba(99, 102, 241, 0.3)' };
+const inactiveTab = { padding: '10px 20px', borderRadius: '30px', border: '1px solid #ccc', background: 'transparent', color: '#666', cursor: 'pointer' };
 
 export default RegisterPage;

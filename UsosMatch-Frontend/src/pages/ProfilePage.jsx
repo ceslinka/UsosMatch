@@ -6,26 +6,20 @@ const ProfilePage = () => {
   const [userId, setUserId] = useState(null);
   const [userName, setUserName] = useState("");
 
-  // Dane profilowe
   const [details, setDetails] = useState({
       height: '',
       dateOfBirth: '',
       description: ''
   });
 
-  // --- MODAL: Stan i Funkcja ---
   const [modal, setModal] = useState({ isOpen: false, type: 'success', title: '', message: '' });
-
   const showModal = (type, title, message) => {
       setModal({ isOpen: true, type, title, message });
   };
-  // -----------------------------
 
-  // Hobby
   const [availableInterests, setAvailableInterests] = useState([]);
   const [selectedInterestIds, setSelectedInterestIds] = useState([]);
 
-  // Grafik
   const [day, setDay] = useState("MONDAY");
   const [start, setStart] = useState("08:00");
   const [end, setEnd] = useState("09:30");
@@ -38,13 +32,11 @@ const ProfilePage = () => {
     if (!storedId) { window.location.href = "/"; return; }
     setUserId(storedId);
 
-    // 1. Hobby
     fetch('http://localhost:8080/api/interests')
         .then(res => res.json())
         .then(data => setAvailableInterests(data))
         .catch(err => console.error("Błąd hobby:", err));
 
-    // 2. User
     fetch('http://localhost:8080/api/users')
         .then(res => res.json())
         .then(users => {
@@ -68,9 +60,28 @@ const ProfilePage = () => {
         });
   }, []);
 
+  // --- 🔥 FUNKCJA ZAPISU (Z NOWĄ WALIDACJĄ) ---
   const handleSaveProfile = () => {
+
+      // 1. Walidacja Wzrostu
+      const heightVal = parseInt(details.height);
+      if (details.height && (heightVal < 140 || heightVal > 240)) {
+          showModal('error', 'Błędny wzrost', 'Wzrost musi mieścić się w przedziale 140 - 240 cm.');
+          return; // STOP! Nie wysyłamy do backendu.
+      }
+
+      // 2. Walidacja Daty Urodzenia
+      if (details.dateOfBirth) {
+          const year = parseInt(details.dateOfBirth.split('-')[0]); // Wyciągamy rok z YYYY-MM-DD
+          if (year < 1960 || year > 2007) {
+              showModal('error', 'Błędna data', 'Rok urodzenia musi być pomiędzy 1960 a 2007.');
+              return; // STOP!
+          }
+      }
+
+      // Jeśli wszystko OK -> Wysyłamy do Javy
       const payload = {
-          height: details.height ? parseInt(details.height) : 0,
+          height: heightVal || 0,
           dateOfBirth: details.dateOfBirth,
           description: details.description,
           interests: selectedInterestIds.map(id => ({ id: id }))
@@ -83,11 +94,9 @@ const ProfilePage = () => {
       })
       .then(async res => {
           if (res.ok) {
-              // SUKCES MODAL
               showModal('success', 'Zapisano!', 'Twój profil został zaktualizowany.');
           } else {
-              // BŁĄD MODAL
-              const errorText = await res.text(); // Pobieramy treść błędu z backendu
+              const errorText = await res.text();
               showModal('error', 'Błąd Zapisu', errorText || "Nie udało się zapisać zmian.");
           }
       });
@@ -110,14 +119,11 @@ const ProfilePage = () => {
         if(res.ok) {
             const s = await res.json();
             setAddedSlots([...addedSlots, s]);
-            // Opcjonalnie: też możesz dać modal, ale może być irytujące przy dodawaniu wielu godzin
-            // showModal('success', 'Dodano', 'Termin dodany do grafiku.');
         }
         else {
             const errorJson = await res.json().catch(() => ({}));
             const errorMsg = errorJson.message || "Błąd dodawania czasu! Sprawdź kolizje.";
-            // BŁĄD MODAL (Zamiast alert)
-            showModal('error', 'Kolizja!', errorMsg);
+            showModal('time', 'Kolizja w grafiku!', errorMsg); // Ikonka zegara!
         }
     });
   };
@@ -128,7 +134,6 @@ const ProfilePage = () => {
   };
 
   return (
-    // Główny DIV
     <div style={{ height: '100vh', overflowY: 'auto', padding: '20px', paddingBottom: '120px' }}>
 
       <div style={{ maxWidth: '1100px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -144,10 +149,9 @@ const ProfilePage = () => {
             </div>
         </div>
 
-        {/* DASHBOARD */}
         <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', alignItems: 'flex-start' }}>
 
-            {/* LEWA KOLUMNA */}
+            {/* LEWA KOLUMNA: O Tobie */}
             <div style={{ flex: 1, minWidth: '300px' }}>
                 <div style={{ ...cardStyle, height: '100%' }}>
                     <h3 style={{ margin: '0 0 15px 0', borderBottom:'1px solid #eee', paddingBottom:'10px', color:'#333' }}>
@@ -156,14 +160,30 @@ const ProfilePage = () => {
 
                     <div style={{ display: 'flex', gap: '15px', marginBottom: '15px' }}>
                         <div style={{ flex: 1 }}>
-                            <label style={labelStyle}><Ruler size={14}/> Wzrost</label>
-                            <input type="number" placeholder="180" style={inputStyle}
-                                value={details.height} onChange={e => setDetails({...details, height: e.target.value})} />
+                            <label style={labelStyle}><Ruler size={14}/> Wzrost (cm)</label>
+
+                            {/* --- LIMITY HTML --- */}
+                            <input
+                                type="number"
+                                min="140" max="240"
+                                placeholder="140-240"
+                                style={inputStyle}
+                                value={details.height}
+                                onChange={e => setDetails({...details, height: e.target.value})}
+                            />
                         </div>
                         <div style={{ flex: 1 }}>
                             <label style={labelStyle}><Calendar size={14}/> Data Ur.</label>
-                            <input type="date" style={inputStyle}
-                                value={details.dateOfBirth} onChange={e => setDetails({...details, dateOfBirth: e.target.value})} />
+
+                            {/* --- LIMITY HTML (DATY) --- */}
+                            <input
+                                type="date"
+                                min="1960-01-01"
+                                max="2007-12-31"
+                                style={inputStyle}
+                                value={details.dateOfBirth}
+                                onChange={e => setDetails({...details, dateOfBirth: e.target.value})}
+                            />
                         </div>
                     </div>
 
@@ -178,7 +198,6 @@ const ProfilePage = () => {
 
                     <label style={labelStyle}><Tag size={14}/> Twoje Pasje</label>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '20px', minHeight: '50px' }}>
-                        {availableInterests.length === 0 && <span style={{fontSize:'12px', color:'red'}}>Brak hobby w bazie.</span>}
                         {availableInterests.map(interest => {
                             const isActive = selectedInterestIds.includes(interest.id);
                             return (
@@ -205,7 +224,7 @@ const ProfilePage = () => {
                 </div>
             </div>
 
-            {/* PRAWA KOLUMNA */}
+            {/* PRAWA KOLUMNA: Grafik (Bez zmian) */}
             <div style={{ flex: 1, minWidth: '300px' }}>
                 <div style={{ ...cardStyle, height: '100%' }}>
                     <h3 style={{ margin: '0 0 15px 0', borderBottom:'1px solid #eee', paddingBottom:'10px', color:'#333' }}>
@@ -226,7 +245,6 @@ const ProfilePage = () => {
                         </button>
                     </div>
 
-                    {/* Lista dodanych slotów */}
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '20px', paddingTop: '15px', borderTop: '1px dashed #eee' }}>
                         {addedSlots.length === 0 && <span style={{fontSize:'13px', color:'#999', fontStyle:'italic'}}>Brak dodanych godzin...</span>}
                         {addedSlots.map((slot) => (
@@ -242,7 +260,6 @@ const ProfilePage = () => {
         </div>
       </div>
 
-      {/* --- TU JEST MODAL (Właściwe miejsce) --- */}
       <InfoModal
           isOpen={modal.isOpen}
           onClose={() => setModal({ ...modal, isOpen: false })}
@@ -251,7 +268,7 @@ const ProfilePage = () => {
           message={modal.message}
       />
 
-    </div> // Zamknięcie głównego DIV
+    </div>
   );
 };
 

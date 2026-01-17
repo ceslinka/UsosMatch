@@ -1,40 +1,47 @@
-import { CheckCircle, AlertTriangle, X } from 'lucide-react';
+import { CheckCircle, XCircle, AlertTriangle, Lock, Clock } from 'lucide-react';
 
 const InfoModal = ({ isOpen, onClose, type, title, message }) => {
-  // Jeśli modal jest zamknięty, nie renderujemy nic
   if (!isOpen) return null;
 
-  const isSuccess = type === 'success';
+  // Logika wyboru ikony i koloru na podstawie TYPU wiadomości
+  let icon = <AlertTriangle size={50} color="#ef4444" />; // Domyślny (Błąd ogólny)
+  let btnStyle = errorBtn;
+
+  switch (type) {
+      case 'success':
+          icon = <CheckCircle size={50} color="#10b981" />;
+          btnStyle = successBtn;
+          break;
+      case 'login': // Nowy typ: Błąd logowania/rejestracji
+          icon = <Lock size={50} color="#f59e0b" />; // Pomarańczowa kłódka
+          btnStyle = warningBtn;
+          break;
+      case 'time': // Nowy typ: Kolizja w grafiku
+          icon = <Clock size={50} color="#6366f1" />; // Fioletowy zegar
+          btnStyle = infoBtn;
+          break;
+      case 'error': // Standardowy błąd
+          icon = <XCircle size={50} color="#ef4444" />;
+          btnStyle = errorBtn;
+          break;
+      default:
+          break;
+  }
 
   return (
-    // 1. TŁO (Overlay) - przyciemnia resztę aplikacji
     <div style={overlayStyle} onClick={onClose}>
-
-      {/* 2. OKNO (Kliknięcie w okno nie powinno go zamykać -> e.stopPropagation) */}
       <div style={modalWindowStyle} onClick={(e) => e.stopPropagation()}>
 
-        {/* Ikonka na górze */}
+        {/* Ikonka dynamiczna */}
         <div style={{ marginBottom: '15px' }}>
-            {isSuccess ? (
-                <CheckCircle size={50} color="#10b981" />
-            ) : (
-                <AlertTriangle size={50} color="#ef4444" />
-            )}
+            {icon}
         </div>
 
-        {/* Tytuł */}
-        <h3 style={{ margin: '0 0 10px 0', color: '#333', fontSize: '20px' }}>
-            {title}
-        </h3>
+        <h3 style={{ margin: '0 0 10px 0', color: '#333', fontSize: '20px' }}>{title}</h3>
+        <p style={{ margin: '0 0 25px 0', color: '#666', lineHeight: '1.5' }}>{message}</p>
 
-        {/* Treść */}
-        <p style={{ margin: '0 0 25px 0', color: '#666', lineHeight: '1.5' }}>
-            {message}
-        </p>
-
-        {/* Przycisk Zamknij */}
-        <button onClick={onClose} style={isSuccess ? successBtn : errorBtn}>
-            Zrozumiałem
+        <button onClick={onClose} style={btnStyle}>
+            OK
         </button>
 
       </div>
@@ -43,32 +50,14 @@ const InfoModal = ({ isOpen, onClose, type, title, message }) => {
 };
 
 // --- STYLE ---
-const overlayStyle = {
-    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)', // Półprzezroczyste czarne tło
-    backdropFilter: 'blur(4px)', // Rozmycie tła aplikacji
-    display: 'flex', justifyContent: 'center', alignItems: 'center', // Centrowanie
-    zIndex: 9999,
-    animation: 'fadeIn 0.2s ease-out'
-};
+const overlayStyle = { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.4)', backdropFilter: 'blur(4px)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 9999, animation: 'fadeIn 0.2s ease-out' };
+const modalWindowStyle = { background: 'white', padding: '30px', borderRadius: '24px', width: '90%', maxWidth: '350px', textAlign: 'center', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', display: 'flex', flexDirection: 'column', alignItems: 'center', animation: 'scaleUp 0.3s ease-out' };
 
-const modalWindowStyle = {
-    background: 'white',
-    padding: '30px',
-    borderRadius: '24px',
-    width: '90%',
-    maxWidth: '400px',
-    textAlign: 'center',
-    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-    display: 'flex', flexDirection: 'column', alignItems: 'center',
-    animation: 'slideUp 0.3s ease-out'
-};
+const btnBase = { padding: '12px 30px', borderRadius: '12px', border: 'none', color: 'white', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer', width: '100%', transition: '0.2s' };
 
-const btnBase = {
-    padding: '12px 30px', borderRadius: '12px', border: 'none', color: 'white', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer', width: '100%', transition: '0.2s'
-};
-
-const successBtn = { ...btnBase, backgroundColor: '#10b981', boxShadow: '0 4px 15px rgba(16, 185, 129, 0.4)' };
-const errorBtn = { ...btnBase, backgroundColor: '#ef4444', boxShadow: '0 4px 15px rgba(239, 68, 68, 0.4)' };
+const successBtn = { ...btnBase, backgroundColor: '#10b981' };
+const errorBtn =   { ...btnBase, backgroundColor: '#ef4444' };
+const warningBtn = { ...btnBase, backgroundColor: '#f59e0b' }; // Pomarańczowy (Logowanie)
+const infoBtn =    { ...btnBase, backgroundColor: '#6366f1' }; // Fioletowy (Czas)
 
 export default InfoModal;

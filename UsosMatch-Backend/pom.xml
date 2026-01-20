@@ -30,6 +30,13 @@
 		<java.version>17</java.version>
 	</properties>
 	<dependencies>
+        <!-- Dokumentacja API (Swagger / OpenAPI) -->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>2.2.0</version>
+        </dependency>
+
         <!-- Bezpieczeństwo i Szyfrowanie -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

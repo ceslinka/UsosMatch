@@ -5,6 +5,7 @@ import com.usosmatch.backend.repository.InterestRepository;
 import com.usosmatch.backend.service.MatchingService;
 import com.usosmatch.backend.service.UserService;
 import org.hibernate.Internal;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -15,11 +16,13 @@ public class UsosMatchController {
     private final UserService userService;
     private final MatchingService matchingService;
     private final InterestRepository interestRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public UsosMatchController(UserService userService, MatchingService matchingService, InterestRepository interestRepository) {
+    public UsosMatchController(UserService userService, MatchingService matchingService, InterestRepository interestRepository, PasswordEncoder passwordEncoder) {
         this.userService = userService;
         this.matchingService = matchingService;
         this.interestRepository = interestRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
 
@@ -73,7 +76,7 @@ public class UsosMatchController {
         User user = userService.findByEmail(loginData.getEmail());
 
         // 2. Jeśli user istnieje I hasło się zgadza -> zwracamy usera
-        if (user != null && user.getPassword().equals(loginData.getPassword())) {
+        if (user != null && passwordEncoder.matches(loginData.getPassword(), user.getPassword())) {
             return user;
         } else {
             // 3. Jeśli nie -> rzucamy błąd (Frontend to obsłuży)

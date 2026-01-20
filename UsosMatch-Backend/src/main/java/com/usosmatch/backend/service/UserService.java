@@ -10,6 +10,7 @@ import com.usosmatch.backend.model.Match;
 import com.usosmatch.backend.model.User;
 import com.usosmatch.backend.repository.InterestRepository;
 import com.usosmatch.backend.repository.MatchRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.usosmatch.backend.repository.UserRepository;
 
@@ -20,18 +21,25 @@ public class UserService {
     private final MatchRepository matchRepository;
     // DODANO:
     private final InterestRepository interestRepository;
+    private final PasswordEncoder passwordEncoder;
 
     // PAMIĘTAJ O ZAKTUALIZOWANIU KONSTRUKTORA!
-    public UserService(UserRepository userRepository, MatchRepository matchRepository, InterestRepository interestRepository) {
+    public UserService(UserRepository userRepository, MatchRepository matchRepository, InterestRepository interestRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.matchRepository = matchRepository;
         this.interestRepository = interestRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public User registerUser(User user) {
         if (userRepository.findByEmail(user.getEmail()).isPresent()) {
             throw new RuntimeException("Taki email już istnieje");
         }
+
+        String plainPassword = user.getPassword();
+        String hashedPassword = passwordEncoder.encode(plainPassword); // Robimy "sałatkę"
+        user.setPassword(hashedPassword);
+
         // Przy rejestracji też warto załadować pasje "porządnie", jeśli jakieś są
         return userRepository.save(user);
     }
@@ -83,4 +91,8 @@ public class UserService {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Nie znaleziono użytkownika: " + email));
     }
+
+
+
+
 }

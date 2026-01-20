@@ -143,11 +143,11 @@ const RegisterPage = () => {
 };
 
 // --- STYLES (Bez zmian - grafika taka sama) ---
-const formContainerStyle = { background: 'rgba(255, 255, 255, 0.9)', backdropFilter: 'blur(20px)', borderRadius: '24px', padding: '30px', width: '100%', maxWidth: '400px', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 40px rgba(0,0,0,0.1)' };
+const formContainerStyle = { background: 'rgba(255, 255, 255, 0.9)', backdropFilter: 'blur(20px)', borderRadius: '24px', padding: '30px', width: '100%', maxWidth: '400px', maxHeight: '80vh', overflowY: 'auto', boxShadow: '0 20px 40px rgba(0,0,0,0.1)'};
 const formStyle = { display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '10px' };
 const inputStyle = { width: '100%', padding: '14px', borderRadius: '12px', border: '1px solid #ddd', outline: 'none', fontSize: '14px', background: '#f9fafb', boxSizing:'border-box' };
 const inputGroupStyle = { display: 'flex', alignItems: 'center', gap: '10px', background: '#f9fafb', border: '1px solid #ddd', borderRadius: '12px', padding: '0 10px' };
-const mainButtonStyle = { padding: '16px', borderRadius: '14px', border: 'none', backgroundColor: '#6366f1', color: 'white', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', marginTop: '10px' };
+const mainButtonStyle = { padding: '16px', borderRadius: '14px', border: 'none', backgroundColor: '#6366f1', color: 'white', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', marginTop: '-10px' };
 const activeTab = { padding: '10px 20px', borderRadius: '30px', border: 'none', background: '#6366f1', color: 'white', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 4px 10px rgba(99, 102, 241, 0.3)' };
 const inactiveTab = { padding: '10px 20px', borderRadius: '30px', border: '1px solid #ccc', background: 'transparent', color: '#666', cursor: 'pointer' };
 

@@ -1,10 +1,14 @@
 import InfoModal from '../components/InfoModal';
-import { useState, useEffect } from 'react';
-import { Calendar, Clock, Plus, UserCircle, X, Save, Ruler, Tag, FileText } from 'lucide-react';
+// 1. POPRAWKA: Scalone importy (raz useRef, raz useState itd.)
+import { useState, useEffect, useRef } from 'react';
+import { Calendar, Clock, Plus, UserCircle, X, Save, Ruler, Tag, FileText, Upload } from 'lucide-react';
 
 const ProfilePage = () => {
   const [userId, setUserId] = useState(null);
   const [userName, setUserName] = useState("");
+
+  // 2. POPRAWKA: useRef przeniesiony DO ŚRODKA komponentu
+  const fileInputRef = useRef(null);
 
   const [details, setDetails] = useState({
       height: '',
@@ -60,26 +64,23 @@ const ProfilePage = () => {
         });
   }, []);
 
-  // --- 🔥 FUNKCJA ZAPISU (Z NOWĄ WALIDACJĄ) ---
   const handleSaveProfile = () => {
-
-      // 1. Walidacja Wzrostu
+      // Walidacja Wzrostu
       const heightVal = parseInt(details.height);
       if (details.height && (heightVal < 140 || heightVal > 240)) {
           showModal('error', 'Błędny wzrost', 'Wzrost musi mieścić się w przedziale 140 - 240 cm.');
-          return; // STOP! Nie wysyłamy do backendu.
+          return;
       }
 
-      // 2. Walidacja Daty Urodzenia
+      // Walidacja Daty Urodzenia
       if (details.dateOfBirth) {
-          const year = parseInt(details.dateOfBirth.split('-')[0]); // Wyciągamy rok z YYYY-MM-DD
+          const year = parseInt(details.dateOfBirth.split('-')[0]);
           if (year < 1960 || year > 2007) {
               showModal('error', 'Błędna data', 'Rok urodzenia musi być pomiędzy 1960 a 2007.');
-              return; // STOP!
+              return;
           }
       }
 
-      // Jeśli wszystko OK -> Wysyłamy do Javy
       const payload = {
           height: heightVal || 0,
           dateOfBirth: details.dateOfBirth,
@@ -123,7 +124,7 @@ const ProfilePage = () => {
         else {
             const errorJson = await res.json().catch(() => ({}));
             const errorMsg = errorJson.message || "Błąd dodawania czasu! Sprawdź kolizje.";
-            showModal('time', 'Kolizja w grafiku!', errorMsg); // Ikonka zegara!
+            showModal('time', 'Kolizja w grafiku!', errorMsg);
         }
     });
   };
@@ -131,6 +132,37 @@ const ProfilePage = () => {
   const handleDeleteSlot = (id) => {
       fetch(`http://localhost:8080/api/timeslots/${id}`, { method: 'DELETE' })
         .then(res => { if(res.ok) setAddedSlots(addedSlots.filter(s => s.id !== id)); });
+  };
+
+  // Funkcje obsługi pliku
+  const triggerFileInput = () => {
+        fileInputRef.current.click();
+  };
+
+  const handleFileUpload = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("userId", userId);
+
+        console.log("Wysyłam plik...");
+
+        fetch('http://localhost:8080/api/timeslots/upload', {
+            method: 'POST',
+            body: formData
+        })
+        .then(async res => {
+            if (res.ok) {
+                showModal('success', 'Import Udany!', 'Plan z USOSa został przetworzony. Strona zostanie odświeżona.');
+                setTimeout(() => window.location.reload(), 2000);
+            } else {
+                const text = await res.text();
+                showModal('error', 'Błąd importu', 'Sprawdź czy to poprawny plik .ics');
+            }
+        })
+        .catch(err => showModal('error', 'Błąd sieci', 'Błąd wysyłania pliku.'));
   };
 
   return (
@@ -161,8 +193,6 @@ const ProfilePage = () => {
                     <div style={{ display: 'flex', gap: '15px', marginBottom: '15px' }}>
                         <div style={{ flex: 1 }}>
                             <label style={labelStyle}><Ruler size={14}/> Wzrost (cm)</label>
-
-                            {/* --- LIMITY HTML --- */}
                             <input
                                 type="number"
                                 min="140" max="240"
@@ -174,8 +204,6 @@ const ProfilePage = () => {
                         </div>
                         <div style={{ flex: 1 }}>
                             <label style={labelStyle}><Calendar size={14}/> Data Ur.</label>
-
-                            {/* --- LIMITY HTML (DATY) --- */}
                             <input
                                 type="date"
                                 min="1960-01-01"
@@ -224,13 +252,34 @@ const ProfilePage = () => {
                 </div>
             </div>
 
-            {/* PRAWA KOLUMNA: Grafik (Bez zmian) */}
+            {/* PRAWA KOLUMNA: Grafik */}
             <div style={{ flex: 1, minWidth: '300px' }}>
                 <div style={{ ...cardStyle, height: '100%' }}>
                     <h3 style={{ margin: '0 0 15px 0', borderBottom:'1px solid #eee', paddingBottom:'10px', color:'#333' }}>
                         📅 Twój Grafik
                     </h3>
 
+                    {/* Sekcja IMPORT */}
+                    <div style={{ marginBottom: '20px', paddingBottom: '20px', borderBottom: '1px solid #eee' }}>
+                        <label style={labelStyle}>📥 Importuj z USOS (plik .ics)</label>
+                        <p style={{fontSize: '11px', color: '#888', marginTop: 0}}>
+                            System wyznaczy wolne godziny (10:00 - 22:00) na podstawie Twoich zajęć.
+                        </p>
+
+                        <input
+                            type="file"
+                            accept=".ics"
+                            ref={fileInputRef}
+                            style={{ display: 'none' }}
+                            onChange={handleFileUpload}
+                        />
+
+                        <button onClick={triggerFileInput} style={{...buttonStyle, background: 'white', color: '#6366f1', border: '1px dashed #6366f1'}}>
+                            <Upload size={18} /> Wgraj plik iCalendar
+                        </button>
+                    </div>
+
+                    {/* Sekcja DODAJ RĘCZNIE */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                         <label style={labelStyle}>Dodaj termin dostępności:</label>
                         <div style={{display:'flex', gap:'10px', flexWrap:'wrap'}}>

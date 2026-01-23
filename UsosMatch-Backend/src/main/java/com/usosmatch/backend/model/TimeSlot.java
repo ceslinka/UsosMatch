@@ -1,19 +1,18 @@
 package com.usosmatch.backend.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnore; // <--- WAŻNE!
 import jakarta.persistence.*;
 import java.time.LocalTime;
 
-@Entity //Mówimy że to encja(tabela)
+@Entity
 @Table(name = "time_slots")
 public class TimeSlot {
-    @Id // traktujemy jako klucz główny
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // automatyczne generowanie wartości
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-
-    @Enumerated(EnumType.STRING) // Żeby nie miec cyfr (0,1...)
+    @Enumerated(EnumType.STRING)
     private DayOfWeek dayOfWeek;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm:ss")
@@ -26,73 +25,44 @@ public class TimeSlot {
 
     @ManyToOne
     @JoinColumn(name = "user_id")
-    @JsonIgnore
+    @JsonIgnore  // <--- BEZ TEGO ZROBI SIĘ PĘTLA I DANE ZNIKNĄ!
     private User user;
 
     public TimeSlot() {
     }
 
-    public TimeSlot(DayOfWeek dayOfWeek, LocalTime startTime, LocalTime endTime, User user) {
+    public TimeSlot(DayOfWeek dayOfWeek, LocalTime startTime, LocalTime endTime, boolean isFreeTime, User user) {
         this.dayOfWeek = dayOfWeek;
         this.startTime = startTime;
         this.endTime = endTime;
+        this.isFreeTime = isFreeTime;
         this.user = user;
     }
 
-    public boolean overlaps(TimeSlot other){
-        if (this.dayOfWeek != other.dayOfWeek){ // Od razu odrzucamy jesli dni sie nie pokrywaja
+    public boolean overlaps(TimeSlot other) {
+        if (this.dayOfWeek != other.getDayOfWeek()) {
             return false;
         }
-        else{
-            return this.startTime.isBefore(other.getEndTime()) && other.getStartTime().isBefore(this.endTime);
-            // Sprawdzenie pokrycia czasowego za pomoca isBefore czyli <
-        }
+        return this.startTime.isBefore(other.getEndTime()) &&
+                other.getStartTime().isBefore(this.endTime);
     }
 
-    public Long getId() {
-        return id;
-    }
+    // Gettery i Settery
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    public DayOfWeek getDayOfWeek() { return dayOfWeek; }
+    public void setDayOfWeek(DayOfWeek dayOfWeek) { this.dayOfWeek = dayOfWeek; }
 
-    public LocalTime getStartTime() {
-        return startTime;
-    }
+    public LocalTime getStartTime() { return startTime; }
+    public void setStartTime(LocalTime startTime) { this.startTime = startTime; }
 
-    public void setStartTime(LocalTime startTime) {
-        this.startTime = startTime;
-    }
+    public LocalTime getEndTime() { return endTime; }
+    public void setEndTime(LocalTime endTime) { this.endTime = endTime; }
 
-    public LocalTime getEndTime() {
-        return endTime;
-    }
+    public boolean isFreeTime() { return isFreeTime; }
+    public void setFreeTime(boolean freeTime) { isFreeTime = freeTime; }
 
-    public void setEndTime(LocalTime endTime) {
-        this.endTime = endTime;
-    }
-
-    public boolean isFreeTime() {
-        return isFreeTime;
-    }
-
-    public void setFreeTime(boolean freeTime) {
-        isFreeTime = freeTime;
-    }
-
-    public DayOfWeek getDayOfWeek() {
-        return dayOfWeek;
-    }
-
-    public void setDayOfWeek(DayOfWeek dayOfWeek) {
-        this.dayOfWeek = dayOfWeek;
-    }
-    public User getUser() {
-        return user;
-    }
-    public void setUser(User user) {
-        this.user=user;
-    }
-
+    public User getUser() { return user; }
+    public void setUser(User user) { this.user = user; }
 }

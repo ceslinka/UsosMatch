@@ -1,21 +1,19 @@
 package com.usosmatch.backend.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.time.LocalDate;
 
-
-@Entity // informujemy że to tabela w bazie
+@Entity
 @Table(name = "users")
 public class User {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) //Baza sama nadaje numery
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     private String firstName;
     private String lastName;
     private String email;
@@ -25,111 +23,65 @@ public class User {
     private int height;
     private String password;
 
+    private String avatarUrl;
+
     @Enumerated(EnumType.STRING)
     private Gender gender;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    // WAŻNE: FetchType.EAGER - ładuje grafik od razu!
+    // WAŻNE: BRAK @JsonIgnore - chcemy wysłać grafik!
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<TimeSlot> schedule = new ArrayList<>();
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL) //Pozwala aby user mial wiele zainteresowan i zainteresowanie mialo weiele userow
-    //Fetch pozwala od razu pobrac wszystkie elementy bazy
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
-            name = "user_interests", //Tabela sluzaca do poleczenia uzytkownika z zainteresowaniami
+            name = "user_interests",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "interest_id")
     )
-    private Set<Interest> interests = new HashSet<>(); // Skorzystanie z zbioru dla zapewnienia unikalnosci elementow
+    private Set<Interest> interests = new HashSet<>();
 
-    public User() {
-    }
+    public User() {}
 
-    public User(String firstName, String lastName, String email, String universityName, String description, Gender gender) {
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.email = email;
-        this.universityName = universityName;
-        this.description = description;
-        this.gender = gender;
-    }
+    // Gettery i Settery
+    public Long getId(){ return id; }
+    public void setId(Long id) { this.id=id; }
 
+    public String getFirstName() { return firstName; }
+    public void setFirstName(String firstName){ this.firstName=firstName; }
 
-    public Long getId(){
-        return id;
-    }
-    public String getFirstName() {
-        return firstName;
-    }
-    public String getLastName(){
-        return lastName;
-    }
-    public String getEmail(){
-        return email;
-    }
-    public String getUniversityName(){
-        return universityName;
-    }
-    public String getDescription(){
-        return description;
-    }
-    public void setId(Long id) {
-        this.id=id;
-    }
-    public void setFirstName(String firstName){
-        this.firstName=firstName;
-    }
-    public void setLastName(String lastName){
-        this.lastName=lastName;
-    }
-    public void setEmail(String email){
-        this.email=email;
-    }
-    public void setUniversityName(String universityName){
-        this.universityName=universityName;
-    }
-    public void setDescription(String description){
-        this.description=description;
-    }
-    public List<TimeSlot> getSchedule() {
-        return schedule;
-    }
-    public void setSchedule(List<TimeSlot> schedule) {
-        this.schedule = schedule;
-    }
-    public Gender getGender() {
-        return gender;
-    }
-    public void setGender(Gender gender) {
-        this.gender = gender;
-    }
-    public Set<Interest> getInterests() {
-        return interests;
-    }
-    public void setInterests(Set<Interest> interests) {
-        this.interests = interests;
-    }
+    public String getLastName(){ return lastName; }
+    public void setLastName(String lastName){ this.lastName=lastName; }
 
-    public LocalDate getDateOfBirth() {
-        return dateOfBirth;
-    }
+    public String getEmail(){ return email; }
+    public void setEmail(String email){ this.email=email; }
 
-    public void setDateOfBirth(LocalDate dateOfBirth) {
-        this.dateOfBirth = dateOfBirth;
-    }
+    public String getUniversityName(){ return universityName; }
+    public void setUniversityName(String universityName){ this.universityName=universityName; }
 
-    public int getHeight() {
-        return height;
-    }
+    public String getDescription(){ return description; }
+    public void setDescription(String description){ this.description=description; }
 
-    public void setHeight(int height) {
-        this.height = height;
-    }
+    // --- KLUCZOWE GETTERY DO GRAFIKU ---
+    public List<TimeSlot> getSchedule() { return schedule; }
+    public void setSchedule(List<TimeSlot> schedule) { this.schedule = schedule; }
+    // -----------------------------------
 
-    public String getPassword() {
-        return password;
-    }
-    public void setPassword(String password) {
-        this.password = password;
-    }
+    public Gender getGender() { return gender; }
+    public void setGender(Gender gender) { this.gender = gender; }
+
+    public Set<Interest> getInterests() { return interests; }
+    public void setInterests(Set<Interest> interests) { this.interests = interests; }
+
+    public LocalDate getDateOfBirth() { return dateOfBirth; }
+    public void setDateOfBirth(LocalDate dateOfBirth) { this.dateOfBirth = dateOfBirth; }
+
+    public int getHeight() { return height; }
+    public void setHeight(int height) { this.height = height; }
+
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
+
+    public String getAvatarUrl() { return avatarUrl; }
+    public void setAvatarUrl(String avatarUrl) { this.avatarUrl = avatarUrl; }
 }
-
-

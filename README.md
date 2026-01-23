@@ -49,7 +49,7 @@ Backendowy silnik oblicza **Compatibility Score**  na podstawie:
 | :--- | :--- |
 | **Backend** | Java 17+, Spring Boot 3, Spring Data JPA, Spring Security |
 | **Frontend** | React.js |
-| **Baza Danych** | H2 Database (Tryb plikowy - brak konieczności instalacji) |
+| **Baza Danych** | H2 Database |
 
 
 ---

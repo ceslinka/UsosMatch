@@ -13,6 +13,7 @@ public class WebConfig implements WebMvcConfigurer {
                 .allowedOrigins("http://localhost:5173") // ...tylko dla aplikacji z tego adresu (React)
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS") // Pozwól na te metody
                 .allowedHeaders("*") // Pozwól na wszystkie nagłówki
-                .allowCredentials(true); // Pozwól na przesyłanie ciasteczek/autoryzacji
+                .allowCredentials(true) // Pozwól na przesyłanie ciasteczek/autoryzacji
+                .allowedOriginPatterns("*");
     }
 }

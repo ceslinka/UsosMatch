@@ -28,8 +28,7 @@ public class TimeSlot {
     @JsonIgnore  // <--- BEZ TEGO ZROBI SIĘ PĘTLA I DANE ZNIKNĄ!
     private User user;
 
-    public TimeSlot() {
-    }
+    public TimeSlot() {}
 
     public TimeSlot(DayOfWeek dayOfWeek, LocalTime startTime, LocalTime endTime, boolean isFreeTime, User user) {
         this.dayOfWeek = dayOfWeek;

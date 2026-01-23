@@ -32,22 +32,25 @@ package "model" {
 
     'Tak zwane bio naszego uzytkowanika, zawierajace najwazniejsze informacje
     class User {
-        - int id
+        - Long id
         - String firstName
         - String lastName
         - String email
         - String universityName
+        - String description
+        - LocalDate dateOfBirth
+        - int height
+        - String password
         - Gender gender
-        - Gender targetGender
-        - String profilePictureUrl
         - List<TimeSlot> schedule
         - Set<Interest> interests
+
         
     }
 
     'Klasa ma na celu zbieranie informacji na temat możliwych okienek studentów 
     class TimeSlot {
-        - int id
+        - Long id
         - DayOfWeek dayOfWeek
         - LocalTime startTime
         - LocalTime endTime
@@ -58,7 +61,7 @@ package "model" {
     
     'Wspólne zainteresowania, hobby
     class Interest {
-        - int id
+        - Long id
         - String name
         - String description
     }
@@ -70,10 +73,18 @@ package "model" {
         MATCHED
         REJECTED
     }
+
+    class Message {
+    - Long id
+    - Long senderId
+    - Long receiverId
+    - String content
+    - LocalDateTime timestamp
+    }
     
     'Klasa ma pozwolic przechowywanie matchy miedzy uzytkownikami 
     class Match {
-        - int id
+        - Long id
         - User user1
         - User user2
         - int compatibilityScore

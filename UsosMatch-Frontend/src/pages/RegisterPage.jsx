@@ -34,7 +34,7 @@ const RegisterPage = () => {
   // --- LOGOWANIE ---
   const handleLogin = (e) => {
     e.preventDefault();
-    fetch(`http://localhost:8080/api/login`, {
+    fetch(`http://192.168.56.1:8080/api/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: loginEmail.trim(), password: loginPassword })
@@ -60,7 +60,7 @@ const RegisterPage = () => {
         return;
     }
 
-    fetch('http://localhost:8080/api/users', {
+    fetch('http://192.168.56.1:8080/api/users', {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formData)
     })
     .then(async (res) => {

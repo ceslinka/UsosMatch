@@ -8,7 +8,7 @@ public class Match {
     @Id
     @GeneratedValue( strategy = GenerationType.IDENTITY)
 
-    private long id;
+    private Long id;
 
     @ManyToOne // Pozwolonie uzyskanie wiecej niz jednego matcha
     @JoinColumn(name = "user1_id") //Dodanie nowej kolumny do tabeli matches

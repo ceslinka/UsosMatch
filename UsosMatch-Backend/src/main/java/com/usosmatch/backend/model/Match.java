@@ -16,13 +16,13 @@ public class Match {
 
     @ManyToOne
     @JoinColumn(name = "user2_id")
-    private User user2;
+    private User user2; //korzystamy z całego obiektu user
 
     private int compabilityScore;
 
-    private LocalDateTime matchDate;
+    private LocalDateTime matchDate; //Nowoczesny sposób trzymania daty w javie
 
-    @Enumerated(EnumType.STRING)
+    @Enumerated(EnumType.STRING) //Zapisujemy status jako napisy w bazie, dla czytelności
     private MatchStatus status;
 
     public Match(){}

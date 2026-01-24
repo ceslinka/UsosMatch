@@ -25,7 +25,7 @@ const ChatPage = () => {
         setMyId(parseInt(storedId));
 
         // Pobieramy listę matchy, żeby wyświetlić ją po lewej
-        fetch(`http://172.20.10.6:8080/api/matches/${storedId}/list`)
+        fetch(`http://localhost:8080/api/matches/${storedId}/list`)
             .then(res => res.json())
             .then(data => {
                 setMatchesList(data);
@@ -41,7 +41,7 @@ const ChatPage = () => {
     useEffect(() => {
         const fetchMessages = () => {
             if (myId && partnerId) {
-                fetch(`http://172.20.10.6:8080/api/chat/${myId}/${partnerId}`)
+                fetch(`http://localhost:8080/api/chat/${myId}/${partnerId}`)
                     .then(res => res.json())
                     .then(data => {
                         // Aktualizujemy wiadomości
@@ -92,7 +92,7 @@ const ChatPage = () => {
             content: newMessage
         };
 
-        fetch('http://172.20.10.6:8080/api/chat', {
+        fetch('http://localhost:8080/api/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(msgPayload)

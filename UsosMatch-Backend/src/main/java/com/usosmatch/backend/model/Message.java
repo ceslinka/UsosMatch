@@ -12,7 +12,7 @@ public class Message {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private Long senderId;
+    private Long senderId; // używamy zamiast całego obiektu
     private Long receiverId;
     private String content;
     private LocalDateTime timestamp;
@@ -29,7 +29,7 @@ public class Message {
         this.senderId = senderId;
         this.receiverId = receiverId;
         this.content = content;
-        this.timestamp = LocalDateTime.now();
+        this.timestamp = LocalDateTime.now(); // ustawiamy czas wysłania na czas w którym tworzymy obiekt
     }
     public Long getId(){
         return id;

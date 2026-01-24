@@ -2,6 +2,8 @@
 
 skinparam shadowing false
 skinparam packageStyle rectangle
+skinparam linetype ortho
+
 skinparam class {
     BackgroundColor White
     ArrowColor #2C3E50
@@ -9,11 +11,9 @@ skinparam class {
     HeaderBackgroundColor #85C1E9
 }
 
-'Korzystamy z modelu model-view-controller aby stworzyc pierwotny plan specyfikacji naszego projektu
-
+' MODEL DANYCH (ENCJE)
 package "model" {
-    
-    'Użyjemy enumów aby nie doprowadzić do niejednoznaczności wpisów 
+
     enum Gender {
         MALE
         FEMALE
@@ -22,48 +22,8 @@ package "model" {
 
     enum DayOfWeek {
         MONDAY
-        TUESDAY
-        WEDNESDAY
-        THURSDAY
-        FRIDAY
-        SATURDAY
+        ...
         SUNDAY
-    }
-
-    'Tak zwane bio naszego uzytkowanika, zawierajace najwazniejsze informacje
-    class User {
-        - Long id
-        - String firstName
-        - String lastName
-        - String email
-        - String universityName
-        - String description
-        - LocalDate dateOfBirth
-        - int height
-        - String password
-        - Gender gender
-        - List<TimeSlot> schedule
-        - Set<Interest> interests
-
-        
-    }
-
-    'Klasa ma na celu zbieranie informacji na temat możliwych okienek studentów 
-    class TimeSlot {
-        - Long id
-        - DayOfWeek dayOfWeek
-        - LocalTime startTime
-        - LocalTime endTime
-        - boolean isFreeTime
-        - User user
-        + boolean overlaps(TimeSlot other)
-    }
-    
-    'Wspólne zainteresowania, hobby
-    class Interest {
-        - Long id
-        - String name
-        - String description
     }
 
     enum MatchStatus {
@@ -74,16 +34,47 @@ package "model" {
         REJECTED
     }
 
-    class Message {
-    - Long id
-    - Long senderId
-    - Long receiverId
-    - String content
-    - LocalDateTime timestamp
+    class User <<Entity>> {
+        - Long id
+        - String firstName
+        - String lastName
+        - String email
+        - String universityName
+        - String description
+        - LocalDate dateOfBirth
+        - int height
+        - String password
+        - String avatarUrl
+        - Gender gender
+        - List<TimeSlot> schedule
+        - Set<Interest> interests
     }
-    
-    'Klasa ma pozwolic przechowywanie matchy miedzy uzytkownikami 
-    class Match {
+
+    class TimeSlot <<Entity>> {
+        - Long id
+        - DayOfWeek dayOfWeek
+        - LocalTime startTime
+        - LocalTime endTime
+        - boolean isFreeTime
+        - User user
+        + boolean overlaps(TimeSlot other)
+    }
+
+    class Interest <<Entity>> {
+        - Long id
+        - String name
+        - String description
+    }
+
+    class Message <<Entity>> {
+        - Long id
+        - Long senderId
+        - Long receiverId
+        - String content
+        - LocalDateTime timestamp
+    }
+
+    class Match <<Entity>> {
         - Long id
         - User user1
         - User user2
@@ -93,68 +84,110 @@ package "model" {
     }
 }
 
-'Wstepnie ten pakiet ma miec kontakt z baza danych aby moc wyszukiwac pewne informacje
+' WARSTWA DOSTĘPU DO DANYCH
 package "repository" {
-    
-    interface UserRepository <<Interface>> {
-        + User findByEmail(String email)
-        + List<User> findByUniversity(String uni)
+
+    interface UserRepository <<Repository>> {
+        + Optional<User> findByEmail(String email)
+        + List<User> findAll()
     }
 
-    interface MatchRepository <<Interface>> {
-        + List<Match> findMatchesByStatus(User u, MatchStatus s)
+    interface MatchRepository <<Repository>> {
+        + List<Match> findAllForUser(User user)
+    }
+
+    interface MessageRepository <<Repository>> {
+        + List<Message> findConversation(Long u1, Long u2)
+    }
+
+    interface InterestRepository <<Repository>> {
+        + Optional<Interest> findByName(String name)
+    }
+
+    interface TimeSlotRepository <<Repository>> {
+        'Standardowe metody CRUD
     }
 }
 
-'Klasy obslugujace cale dzialanie parowania 
+' LOGIKA BIZNESOWA
 package "service" {
-    'Obsluga dzialania naszego matchowania     
-    class MatchingService {
-       'Algorytmy sa w trakcie planowania to wstepny model 
-        - UserRepository userRepository
-        - MatchRepository matchRepository
-        + List<Match> generatePotentialMatches(User user)
+
+    class MatchingService <<Service>> {
+        + List<Match> generateMatches(Long userId)
+        + List<Match> getSuccessMatches(Long userId)
+        + void acceptMatch(Long matchId, Long userId)
+        + void rejectMatch(Long matchId)
         - int calculateScore(User u1, User u2)
-        - boolean checkTimeCompatibility(List<TimeSlot> t1, List<TimeSlot> t2)
+        - boolean shouldDisplayMatch(Match m, Long uid)
     }
-    'Obsluga rejestracji 
-    class UserService {
-        - UserRepository userRepository
+
+    class UserService <<Service>> {
         + User registerUser(User user)
-        'Plan na pobieranie automatycznie planu/ewentualnie zostanie zmienione na manualne 
-        + void importScheduleFromUsos(String usosUrl)
+        + User updateUser(Long id, User details)
+        + void deleteUser(Long id)
+        + User findByEmail(String email)
+    }
+
+    class TimeSlotService <<Service>> {
+        + TimeSlot addTimeSlot(TimeSlot slot, Long userId)
+        + void deleteTimeSlot(Long id)
+        + void importFromIcs(MultipartFile file, Long userId)
+    }
+
+    class MessageService <<Service>> {
+        + Message saveMessage(Message msg)
+        + List<Message> getConversation(Long u1, Long u2)
     }
 }
 
-'Mozliwosc kontroli i korzystania z aplikacji przez uzytkownika
+' KONTROLERY (API)
 package "controller" {
-    
-    class UsosMatchController {
-        - UserService userService
-        - MatchingService matchingService
-        + void register(User user)
-        + List<Match> getMyMatches(Long userId)
-        + void swipe(Long matchId, boolean like)
+
+    class UsosMatchController <<RestController>> {
+        + User createUser(User user)
+        + List<Match> getUserMatches(Long userId)
+        + List<Match> getSuccessMatches(Long userId)
+        + void acceptMatch(Long mId, Long uId)
+    }
+
+    class TimeSlotController <<RestController>> {
+        + TimeSlot addTimeSlot(TimeSlot slot)
+        + void uploadSchedule(MultipartFile file)
+    }
+
+    class MessageController <<RestController>> {
+        + Message saveMessage(Message msg)
+        + List<Message> getConversation(Long u1, Long u2)
     }
 }
 
-User "1" *-- TimeSlot 
-'Kompozycja. Oznacza to ścisłą zależność. Plan zajęć nie może istnieć bez Studenta.
-User "*" -- "*" Interest 
-'Relacja wiele-do-wielu. Jeden student ma wiele zainteresowań
-Match --> User 
-'Asocjacja obiekt dopasowanie wskazuje na dwóch konkretnych użytkowników
+' RELACJE (Kluczowe dla zrozumienia struktury)
 
+' Relacje encji
+User "1" *-- "*" TimeSlot : "Kompozycja (OneToMany)"
+User "*" -- "*" Interest : "ManyToMany"
+Match --> User : "Dotyczy (ManyToOne)"
+User -- Gender
+User -- DayOfWeek
 
-'Klasyczne polaczenia tylko we dwoch stylach 
-UserRepository ..> User
-MatchRepository ..> Match
+' Relacje MVC (Wstrzykiwanie zależności)
+UsosMatchController ..> UserService
+UsosMatchController ..> MatchingService
+UsosMatchController ..> InterestRepository
 
-UserService --> UserRepository
-MatchingService --> UserRepository
-MatchingService --> MatchRepository
+TimeSlotController ..> TimeSlotService
+MessageController ..> MessageService
 
-UsosMatchController --> UserService
-UsosMatchController --> MatchingService
+UserService ..> UserRepository
+UserService ..> MatchRepository
+UserService ..> InterestRepository
+
+MatchingService ..> MatchRepository
+MatchingService ..> UserRepository
+
+TimeSlotService ..> TimeSlotRepository
+TimeSlotService ..> UserRepository
+
+MessageService ..> MessageRepository
 
 @enduml

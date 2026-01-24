@@ -25,7 +25,7 @@ public class TimeSlot {
 
     @ManyToOne
     @JoinColumn(name = "user_id")
-    @JsonIgnore  // <--- BEZ TEGO ZROBI SIĘ PĘTLA I DANE ZNIKNĄ!
+    @JsonIgnore  //BEZ TEGO ZROBI SIĘ PĘTLA I DANE ZNIKNĄ!
     private User user;
 
     public TimeSlot() {}

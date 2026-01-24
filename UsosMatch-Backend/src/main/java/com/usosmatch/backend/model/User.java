@@ -23,7 +23,6 @@ public class User {
     private int height;
     private String password;
 
-    private String avatarUrl;
 
     @Enumerated(EnumType.STRING)
     private Gender gender;
@@ -82,6 +81,4 @@ public class User {
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
 
-    public String getAvatarUrl() { return avatarUrl; }
-    public void setAvatarUrl(String avatarUrl) { this.avatarUrl = avatarUrl; }
 }

@@ -36,12 +36,12 @@ const ProfilePage = () => {
     if (!storedId) { window.location.href = "/"; return; }
     setUserId(storedId);
 
-    fetch('http://172.20.10.6:8080/api/interests')
+    fetch('http://localhost:8080/api/interests')
         .then(res => res.json())
         .then(data => setAvailableInterests(data))
         .catch(err => console.error("Błąd hobby:", err));
 
-    fetch('http://172.20.10.6:8080/api/users')
+    fetch('http://localhost:8080/api/users')
         .then(res => res.json())
         .then(users => {
             const me = users.find(u => u.id.toString() === storedId);
@@ -88,7 +88,7 @@ const ProfilePage = () => {
           interests: selectedInterestIds.map(id => ({ id: id }))
       };
 
-      fetch(`http://172.20.10.6:8080/api/users/${userId}`, {
+      fetch(`http://localhost:8080/api/users/${userId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
@@ -114,7 +114,7 @@ const ProfilePage = () => {
   const handleAddSlot = () => {
     const slotData = { dayOfWeek: day, startTime: start + ":00", endTime: end + ":00", freeTime: true };
 
-    fetch(`http://172.20.10.6:8080/api/timeslots?userId=${userId}`, {
+    fetch(`http://localhost:8080/api/timeslots?userId=${userId}`, {
         method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(slotData)
     }).then(async res => {
         if(res.ok) {
@@ -130,7 +130,7 @@ const ProfilePage = () => {
   };
 
   const handleDeleteSlot = (id) => {
-      fetch(`http://172.20.10.6:8080/api/timeslots/${id}`, { method: 'DELETE' })
+      fetch(`http://localhost:8080/api/timeslots/${id}`, { method: 'DELETE' })
         .then(res => { if(res.ok) setAddedSlots(addedSlots.filter(s => s.id !== id)); });
   };
 
@@ -149,7 +149,7 @@ const ProfilePage = () => {
 
         console.log("Wysyłam plik...");
 
-        fetch('http://172.20.10.6:8080/api/timeslots/upload', {
+        fetch('http://localhost:8080/api/timeslots/upload', {
             method: 'POST',
             body: formData
         })

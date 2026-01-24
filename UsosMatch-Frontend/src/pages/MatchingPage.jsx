@@ -13,7 +13,7 @@ const MatchingPage = () => {
     const idNum = parseInt(storedIdString);
     setMyId(idNum);
 
-    fetch(`http://172.20.10.6:8080/api/matches/${idNum}`)
+    fetch(`http://localhost:8080/api/matches/${idNum}`)
         .then(res => res.json())
         .then(data => {
             console.log("Pobrane matche:", data);
@@ -43,7 +43,7 @@ const MatchingPage = () => {
 
        // --- KLUCZOWA NAPRAWA BŁĘDU ---
        // Dodajemy ?userId=${myId} do adresu URL
-       fetch(`http://172.20.10.6:8080/api/matches/${matchId}/${action}?userId=${myId}`, {
+       fetch(`http://localhost:8080/api/matches/${matchId}/${action}?userId=${myId}`, {
            method: 'POST'
        }).then(res => {
            if (res.ok) {

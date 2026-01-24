@@ -1,55 +1,90 @@
 @startuml
 
-title Diagram Obiektów: Dopasowanie Ani i Marka
+title Diagram Obiektów: Scenariusz Dopasowania (Snapshot)
 
-'Składnia: object "nazwa_zmiennej : TypKlasy" as alias
+skinparam shadowing false
+skinparam packageStyle rectangle
+skinparam object {
+    BackgroundColor White
+    ArrowColor #2C3E50
+    BorderColor #2C3E50
+    HeaderBackgroundColor #85C1E9
+}
 
+' Obiekt User 1
 object "user1 : User" as ania {
     id = 1
     firstName = "Ania"
     lastName = "Kowalska"
     email = "ania@agh.edu.pl"
     description = "Szukam teamu do projektu"
+    gender = FEMALE
 }
 
+' Obiekt User 2
 object "user2 : User" as marek {
     id = 2
     firstName = "Marek"
     lastName = "Nowak"
     email = "marek@agh.edu.pl"
     description = "Lubię backend"
+    gender = MALE
 }
 
+' Okienko czasowe Ani
 object "slotAni : TimeSlot" as slot1 {
-    dayOfWeek = 2 (Wtorek)
+    id = 10
+    dayOfWeek = TUESDAY
     startTime = 11:30
     endTime = 13:00
+    isFreeTime = true
 }
 
+' Okienko czasowe Marka (takie samo!)
 object "slotMarka : TimeSlot" as slot2 {
-    dayOfWeek = 2 (Wtorek)
+    id = 25
+    dayOfWeek = TUESDAY
     startTime = 11:30
     endTime = 13:00
+    isFreeTime = true
 }
 
-object "zainteresowanie : Interest" as java {
+' Wspólna pasja
+object "interest : Interest" as java {
+    id = 5
     name = "Java Spring"
-    category = "Programowanie"
+    description = "Backend Development"
 }
 
+' Wynik dopasowania
 object "match1 : Match" as dopasowanie {
     id = 101
     compatibilityScore = 95
     matchDate = 2025-11-27T10:00
+    status = MATCHED
 }
 
-ania -- slot1 : posiada w planie
-marek -- slot2 : posiada w planie
+' RELACJE (Linki między obiektami w pamięci)
 
-ania -- java : interesuje się
-marek -- java : interesuje się
+' Ania ma grafik
+ania *-- slot1
 
+' Marek ma grafik
+marek *-- slot2
+
+' Ania i Marek lubią to samo (wspólny obiekt w bazie)
+ania -- java
+marek -- java
+
+' Match łączy te dwie osoby
 dopasowanie --> ania : user1
 dopasowanie --> marek : user2
+
+note right of dopasowanie
+  Wynik 95% wynika z:
+  +25 pkt za wspólne okienko (Wtorek 11:30)
+  +10 pkt za wspólną pasję (Java Spring)
+  +Baza punktów (algorytm)
+end note
 
 @enduml

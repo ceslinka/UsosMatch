@@ -2,52 +2,62 @@
 left to right direction
 skinparam packageStyle rectangle
 skinparam actorStyle awesome
+
 skinparam usecase {
     BackgroundColor White
     BorderColor #2C3E50
     ArrowColor #2C3E50
+    BackgroundColor<<Internal>> #F2F3F4
 }
 
 actor "Student" as student
-actor "System USOS" as usos <<System Zewnętrzny>>
+actor "System USOS\n(Plik .ics)" as usos <<System Zewnętrzny>>
 
-package "Aplikacja UsosMatch " {
+package "Aplikacja UsosMatch" {
 
-    
-    'Pola obslugiwane przez aplikacje
+    ' --- KONTO I PROFIL ---
     usecase "Rejestracja i Logowanie" as UC_Login
-    usecase "Edycja Profilu" as UC_Profile
-    
-    
-    usecase "Zarządzanie Planem Zajęć" as UC_Schedule
-    usecase "Import planu z USOS" as UC_Import
-    usecase "Ręczne definiowanie okienek" as UC_Manual
+    usecase "Edycja Profilu\n(Pasje, Opis)" as UC_Profile
 
-  
-    usecase "Szukanie Par" as UC_Swipe
-    usecase "Algorytm weryfikacji\nzgodności czasu" as UC_CheckTime
-    usecase "Swipe" as UC_Action
+    ' --- PLAN ZAJĘĆ (TimeSlotService) ---
+    usecase "Zarządzanie Planem Zajęć" as UC_Schedule
+    usecase "Import pliku .ics" as UC_Import
+    usecase "Ręczne dodawanie okienek" as UC_Manual
+
+    ' --- MATCHING (MatchingService) ---
+    usecase "Przeglądanie Kandydatów\n(Zakładka Ogień)" as UC_Browse
+    usecase "Akceptacja / Odrzucenie\n(Swipe)" as UC_Decide
+    usecase "Obliczenie % zgodności\n(Algorytm)" as UC_Algo <<Internal>>
+
+    ' --- KOMUNIKACJA (MessageService) ---
+    usecase "Przeglądanie Par\n(Zakładka Lista)" as UC_List
+    usecase "Czatowanie z Parą" as UC_Chat
 
 }
 
-'relacje studenta
+' --- RELACJE STUDENTA ---
 student --> UC_Login
 student --> UC_Profile
 student --> UC_Schedule
-student --> UC_Swipe
+student --> UC_Browse
+student --> UC_List
 
-'Wstepnie dodane dwie wersje zarzadania planem zobaczymy jak wyjdzie z polaczeniem z usosem 
-UC_Schedule <.. UC_Import : <<extend>>
-UC_Schedule <.. UC_Manual : <<extend>>
+' --- RELACJE PLANU ZAJĘĆ ---
+' Student zarządza planem, co MOŻE polegać na imporcie lub ręcznym dodaniu
+UC_Schedule <|-- UC_Import
+UC_Schedule <|-- UC_Manual
+' Import wymaga pliku z USOSa
+UC_Import ..> usos : <<korzysta z danych>>
 
-'Narazie to tu zostawimy 
-UC_Import --> usos : Pobiera dane
+' --- RELACJE MATCHINGU ---
+' Przeglądanie kandydatów ZAWSZE uruchamia algorytm (include)
+UC_Browse ..> UC_Algo : <<include>>
 
-'Sprawdzenie warunku
-UC_Swipe ..> UC_CheckTime : <<include>>
-'Zwrot informacji 
-UC_Swipe <.. UC_Action : <<extend>>
+' Decyzja (Swipe) jest rozszerzeniem przeglądania (robisz to podczas przeglądania)
+UC_Browse <.. UC_Decide : <<extend>>
 
-
+' --- RELACJE CZATU ---
+' Czatowanie jest możliwe tylko z poziomu listy par
+UC_List <.. UC_Chat : <<extend>>
 
 @enduml

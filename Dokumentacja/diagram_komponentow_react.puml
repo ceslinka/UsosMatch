@@ -1,0 +1,57 @@
+@startuml
+title Architektura Frontendu (React)
+
+skinparam componentStyle rectangle
+skinparam component {
+  BackgroundColor White
+  BorderColor #6366f1
+  ArrowColor #2C3E50
+}
+
+package "Routing (React Router)" {
+    [App / Router] as Router
+}
+
+package "Komponenty Globalne" {
+    [Navbar]
+    [InfoModal]
+}
+
+package "Strony (Pages)" {
+    [RegisterPage]
+    [ProfilePage]
+    [MatchingPage]
+    [MatchesListPage]
+    [ChatPage]
+}
+
+package "Logika / API" {
+    [Fetch API] as API
+}
+
+cloud "Backend Spring Boot" {
+    [REST Controllers]
+}
+
+' Relacje nawigacji
+Router --> RegisterPage : "/"
+Router --> ProfilePage : "/profile"
+Router --> MatchingPage : "/match"
+Router --> MatchesListPage : "/list"
+Router --> ChatPage : "/chat/:id"
+
+' Użycie komponentów
+RegisterPage ..> InfoModal : używa
+ProfilePage ..> InfoModal : używa
+Router ..> Navbar : wyświetla stale
+
+' Komunikacja z API
+RegisterPage --> API : POST /login, /users
+ProfilePage --> API : GET/PUT /users, POST /upload
+MatchingPage --> API : GET /matches/candidates
+MatchesListPage --> API : GET /matches/list
+ChatPage --> API : GET/POST /chat
+
+API --> [REST Controllers] : HTTP Requests
+
+@enduml

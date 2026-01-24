@@ -1,0 +1,34 @@
+@startuml
+title Przepływ danych w Czacie (Polling)
+
+actor Student
+participant "ChatPage (React)" as Frontend
+participant "MessageController" as Backend
+database "H2 Database" as DB
+
+== Inicjalizacja ==
+Student -> Frontend : Otwiera czat z parą
+Frontend -> Backend : GET /api/chat/{myId}/{partnerId}
+Backend -> DB : SELECT * FROM messages...
+DB --> Backend : Lista wiadomości
+Backend --> Frontend : JSON [msg1, msg2...]
+Frontend -> Student : Wyświetla historię
+
+== Pętla odświeżania (Co 2 sekundy) ==
+loop setInterval(2000ms)
+    Frontend -> Backend : GET /api/chat/{myId}/{partnerId}
+    Backend -> DB : Pobierz nowsze wiadomości
+    DB --> Backend : Lista
+    Backend --> Frontend : JSON (Aktualizacja)
+    Frontend -> Frontend : setMessages(data)
+end
+
+== Wysyłanie wiadomości ==
+Student -> Frontend : Wpisuje "Hej" i klika Wyślij
+Frontend -> Backend : POST /api/chat {content: "Hej"}
+Backend -> DB : INSERT INTO messages...
+Backend --> Frontend : Zwraca zapisaną wiadomość
+Frontend -> Frontend : Dodaje do listy (lokalnie)
+Frontend -> Student : Wiadomość pojawia się w dymku
+
+@enduml

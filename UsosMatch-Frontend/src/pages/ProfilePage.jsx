@@ -263,7 +263,7 @@ const ProfilePage = () => {
                     <div style={{ marginBottom: '20px', paddingBottom: '20px', borderBottom: '1px solid #eee' }}>
                         <label style={labelStyle}>📥 Importuj z USOS (plik .ics)</label>
                         <p style={{fontSize: '11px', color: '#888', marginTop: 0}}>
-                            System wyznaczy wolne godziny (10:00 - 22:00) na podstawie Twoich zajęć.
+                            System wyznaczy wolne godziny (8:00 - 23:00) na podstawie Twoich zajęć.
                         </p>
 
                         <input

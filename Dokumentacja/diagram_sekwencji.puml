@@ -14,8 +14,8 @@ DB --> Backend : Lista wiadomości
 Backend --> Frontend : JSON [msg1, msg2...]
 Frontend -> Student : Wyświetla historię
 
-== Pętla odświeżania (Co 2 sekundy) ==
-loop setInterval(2000ms)
+== Pętla odświeżania  ==
+loop setInterval
     Frontend -> Backend : GET /api/chat/{myId}/{partnerId}
     Backend -> DB : Pobierz nowsze wiadomości
     DB --> Backend : Lista

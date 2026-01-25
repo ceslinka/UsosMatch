@@ -101,17 +101,21 @@ public class MatchingService {
         }
 
         set1.retainAll(set2); //Pokrycie się elementów zainteresowania
-        score += set1.size() * 10;
+        int commonInterestCount = set1.size();
+        int interestScore = Math.min(commonInterestCount * 10, 20);
+
+        int timeOverlapsCount = 0;
 
         for (TimeSlot slot1 : user1.getSchedule()) {
             for (TimeSlot slot2 : user2.getSchedule()) {
                 if (slot1.overlaps(slot2)) { //Uzywamy wczesniej stworzonej metody z TimeSlot
-                    score += 25;
+                    timeOverlapsCount++;
                 }
             }
         }
+        int timeScore = Math.min(timeOverlapsCount*20,80);
 
-        return score;
+        return interestScore + timeScore;
     }
 
     public void acceptMatch(Long matchId, Long activeUserId) {

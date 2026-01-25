@@ -33,7 +33,7 @@ const ProfilePage = () => {
 
   useEffect(() => {
     const storedId = localStorage.getItem("myUserId");
-    if (!storedId) { window.location.href = "/"; return; }
+    if (!storedId) { window.location.href = "/"; return; } // gwarancja że niezalogowany użytkownik wyleci na stronę startową
     setUserId(storedId);
 
     fetch('http://localhost:8080/api/interests')

@@ -26,7 +26,7 @@ public class UsosMatchController {
     }
 
 
-    @PostMapping("/users")
+    @PostMapping("/users") // @RequestBody - Spring bierze JSON z reacta i zamienia go na obiekt klasy User
     public User createUser(@RequestBody User user) { // RequestBody zmienia z JSON na obiekt JAVA
         return userService.registerUser(user);
     }

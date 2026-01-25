@@ -40,7 +40,6 @@ public class UserService {
         String hashedPassword = passwordEncoder.encode(plainPassword); // Robimy "sałatkę"
         user.setPassword(hashedPassword);
 
-        // Przy rejestracji też warto załadować pasje "porządnie", jeśli jakieś są
         return userRepository.save(user);
     }
 

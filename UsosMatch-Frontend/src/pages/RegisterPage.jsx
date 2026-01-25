@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState } from 'react'; // pudełka na pamięć
 import { useNavigate } from 'react-router-dom';
 import { Mail, ChevronRight, LogIn, Lock } from 'lucide-react';
 // IMPORT MODALA
@@ -6,9 +6,9 @@ import InfoModal from '../components/InfoModal';
 
 const RegisterPage = () => {
   const navigate = useNavigate();
-  const [isLoginMode, setIsLoginMode] = useState(false);
+  const [isLoginMode, setIsLoginMode] = useState(false); //czy jesteśmy w trybie logowania? false - rejestracja
   const [loginEmail, setLoginEmail] = useState('');
-  const [loginPassword, setLoginPassword] = useState('');
+  const [loginPassword, setLoginPassword] = useState(''); //zapamiętujemy login i hasło
 
   // CONFIG MODALA
   const [modal, setModal] = useState({ isOpen: false, type: 'success', title: '', message: '' });
@@ -18,11 +18,14 @@ const RegisterPage = () => {
   const defaultFormData = {
     firstName: '', lastName: '', email: '', password: '', universityName: 'AGH', gender: 'MALE', description: ''
   };
-  const [formData, setFormData] = useState(defaultFormData);
+  const [formData, setFormData] = useState(defaultFormData); // dane rejestracji trzymamy w jednym obiekcie
 
+// pakujemy informację o kliknięciu w paczkę e
+// (...formData) robimy kopię wszystkiego co jest w formularzu do tej pory
+//
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
-  // --- NOWA FUNKCJA: Przełączanie zakładek z czyszczeniem ---
+  // Przełączanie zakładek np z logowania do rejstracji
   const switchMode = (toLogin) => {
       setIsLoginMode(toLogin);
       // Czyścimy wszystko, żeby dane nie skakały między polami!
@@ -40,7 +43,7 @@ const RegisterPage = () => {
         body: JSON.stringify({ email: loginEmail.trim(), password: loginPassword })
     })
     .then(async (response) => {
-        if (response.ok) {
+        if (response.ok) { //backend potwierdził że dane są ok
             const user = await response.json();
             localStorage.setItem("myUserId", user.id);
             navigate('/profile');
@@ -53,7 +56,7 @@ const RegisterPage = () => {
 
   // --- REJESTRACJA (Z POPRAWKĄ JSON) ---
   const handleRegister = (e) => {
-    e.preventDefault();
+    e.preventDefault(); // blokujemy odświeżanie strony, aby nie utracić danych
 
     if(!formData.password || formData.password.length < 3) {
         showModal('error', 'Słabe hasło', 'Hasło musi mieć minimum 3 znaki!');
@@ -64,10 +67,10 @@ const RegisterPage = () => {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formData)
     })
     .then(async (res) => {
-      if (res.ok) {
+      if (res.ok) { // użytkownik stworzony
         const user = await res.json();
-        localStorage.setItem("myUserId", user.id);
-        navigate('/profile');
+        localStorage.setItem("myUserId", user.id); // automatyczne logowanie po rejestracji
+        navigate('/profile'); // przekierowujemy do profile
       } else {
         // 🔥 TUTAJ BYŁ PROBLEM Z "KRZACZKAMI" 🔥
         // Próbujemy odczytać odpowiedź jako JSON, żeby wyciągnąć pole "message"

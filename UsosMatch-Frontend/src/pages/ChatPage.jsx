@@ -44,7 +44,7 @@ const ChatPage = () => {
                 fetch(`http://localhost:8080/api/chat/${myId}/${partnerId}`)
                     .then(res => res.json())
                     .then(data => {
-                        // Aktualizujemy wiadomości
+                        // Podmieniamy stare wiadomości na nowe
                         setMessages(data);
                     })
                     .catch(err => console.error(err));
@@ -52,10 +52,10 @@ const ChatPage = () => {
         };
 
         // 1. Pobierz raz od razu
-        fetchMessages();
+        fetchMessages(); // wysyłamy metodę GET do Javy
 
         // 2. Ustaw "budzik" co 2 sekundy (Polling), żeby widzieć co ktoś odpisuje
-        const intervalId = setInterval(fetchMessages, 2000);
+        const intervalId = setInterval(fetchMessages, 2000); // setInterval to wbudowana funkcja JavaScript
 
         // 3. Sprzątanie przy wyjściu
         return () => clearInterval(intervalId);

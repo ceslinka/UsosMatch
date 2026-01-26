@@ -72,7 +72,6 @@ const RegisterPage = () => {
         localStorage.setItem("myUserId", user.id); // automatyczne logowanie po rejestracji
         navigate('/profile'); // przekierowujemy do profile
       } else {
-        // 🔥 TUTAJ BYŁ PROBLEM Z "KRZACZKAMI" 🔥
         // Próbujemy odczytać odpowiedź jako JSON, żeby wyciągnąć pole "message"
         try {
             const errorJson = await res.json();

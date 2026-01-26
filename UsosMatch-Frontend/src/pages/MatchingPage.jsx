@@ -41,7 +41,6 @@ const MatchingPage = () => {
            return;
        }
 
-       // --- KLUCZOWA NAPRAWA BŁĘDU ---
        // Dodajemy ?userId=${myId} do adresu URL
        fetch(`http://localhost:8080/api/matches/${matchId}/${action}?userId=${myId}`, {
            method: 'POST'

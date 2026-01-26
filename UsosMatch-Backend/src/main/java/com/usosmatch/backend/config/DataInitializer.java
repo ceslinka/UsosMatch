@@ -27,7 +27,7 @@ public class DataInitializer {
                 for (String name : defaultInterests) {
                     interestRepository.save(new Interest(name, "Kategoria ogólna"));
                 }
-                System.out.println("✅ Dodano domyślne zainteresowania do bazy!");
+
             }
         };
     }

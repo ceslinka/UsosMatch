@@ -27,6 +27,7 @@ public class MatchingService {
         User currentUser = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("Nie znaleziono użytkownika o takim ID: " + userId)); //Znalezienie uzytkownika
         List<User> allUsers = userRepository.findAll(); //Pobranie wszytskich uzytkownikow
         List<Match> exisitingMatches = matchRepository.findAllForUser(currentUser); // Naprawienie bledu odswiezania
+        //Za pomoca pobrania listy egzystujacych matchy
         List<Match> matches = new ArrayList<>();
         for (User candidate : allUsers) {
             if (candidate.getId().equals(currentUser.getId())) {
@@ -35,7 +36,7 @@ public class MatchingService {
 
             int score = calculateScore(currentUser, candidate);
 
-            if (score > 0) {
+            if (score > 20) {
                 Match matchToSave = findExistingMatch(exisitingMatches, candidate);
                 if (matchToSave != null) {
                     matchToSave.setCompabilityScore(score);
@@ -86,7 +87,7 @@ public class MatchingService {
     }
 
     private int calculateScore(User user1, User user2) {
-        int score = 0;
+
 
         Set<String> set1 = new HashSet<>();
 
@@ -191,7 +192,7 @@ public class MatchingService {
 
         switch (match.getStatus()) {
             case MATCHED:
-                return false; // Już sparowani -> nie pokazuj w ogniu
+                return false; // Już sparowani -> nie pokazuj
             case REJECTED:
                 return false; // Odrzuceni -> nie pokazuj
             case PENDING:

@@ -19,13 +19,17 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable())
+                .csrf(csrf -> csrf.disable()) // Wyłącz CSRF, bo mamy React
+                .headers(headers -> headers.frameOptions(frame -> frame.disable())) // WAŻNE DLA H2 CONSOLE!
                 .authorizeHttpRequests(auth -> auth
-                                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                .anyRequest().permitAll()
+                        // Lista adresów, które są publicznie dostępne bez logowania
+                        .requestMatchers("/h2-console/**").permitAll() // POZWÓL na dostęp do konsoli
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll() // Swagger też
+                        .anyRequest().permitAll() // Reszta też jest otwarta (na razie)
                 );
+
         return http.build();
     }
 

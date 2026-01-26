@@ -19,11 +19,10 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final MatchRepository matchRepository;
-    // DODANO:
     private final InterestRepository interestRepository;
     private final PasswordEncoder passwordEncoder;
 
-    // PAMIĘTAJ O ZAKTUALIZOWANIU KONSTRUKTORA!
+
     public UserService(UserRepository userRepository, MatchRepository matchRepository, InterestRepository interestRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.matchRepository = matchRepository;
@@ -51,7 +50,7 @@ public class UserService {
         userRepository.deleteById(userId);
     }
 
-    // --- NAPRAWIONA METODA AKTUALIZACJI ---
+
     public User updateUser(Long userId, User updatedDetails) {
         return userRepository.findById(userId).map(existingUser -> {
 
@@ -73,14 +72,14 @@ public class UserService {
                 // Pobieramy prawdziwe obiekty z bazy
                 List<Interest> realInterestsList = interestRepository.findAllById(interestIds);
 
-                // Zamieniamy na zbiór (Set) i przypisujemy użytkownikowi
+                // Zamieniamy na zbiór  i przypisujemy użytkownikowi
                 existingUser.setInterests(new HashSet<>(realInterestsList));
             }
 
             return userRepository.save(existingUser);
         }).orElseThrow(() -> new RuntimeException("Nie znaleziono usera"));
     }
-    // -------------------------------------
+
 
     public List<User> getAllUsers() {
         return userRepository.findAll();

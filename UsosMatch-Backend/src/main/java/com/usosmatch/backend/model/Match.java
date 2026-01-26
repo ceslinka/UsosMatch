@@ -2,11 +2,11 @@ package com.usosmatch.backend.model;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "matches")
+@Entity //Odnieisienie się do bazy danych
+@Table(name = "matches") //Stworzenie tabeli
 public class Match {
-    @Id
-    @GeneratedValue( strategy = GenerationType.IDENTITY)
+    @Id //Primary key bazy
+    @GeneratedValue( strategy = GenerationType.IDENTITY) //Automatyczne nadawanie numerów ID
 
     private Long id;
 

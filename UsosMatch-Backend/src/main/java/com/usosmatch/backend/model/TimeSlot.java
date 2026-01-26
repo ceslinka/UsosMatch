@@ -18,7 +18,7 @@ public class TimeSlot {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm:ss")
     private LocalTime startTime;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm:ss")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm:ss") //Ustalony format czasu
     private LocalTime endTime;
 
     private boolean isFreeTime;
@@ -42,9 +42,10 @@ public class TimeSlot {
         if (this.dayOfWeek != other.getDayOfWeek()) {
             return false;
         }
-        return this.startTime.isBefore(other.getEndTime()) &&
-                other.getStartTime().isBefore(this.endTime);
-    }
+        return this.startTime.isBefore(other.getEndTime()) && //1.  **Spotkanie A musi zacząć się, zanim skończy się spotkanie B.** (`this.startTime < other.endTime`)
+                other.getStartTime().isBefore(this.endTime); //2.  **Spotkanie B musi zacząć się, zanim skończy się spotkanie A.** (`other.startTime < this.endTime`)
+    }   //Metoda sprawdzajaca pokrywanie sie okienek
+
 
     // Gettery i Settery
     public Long getId() { return id; }

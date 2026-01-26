@@ -28,17 +28,18 @@ public class User {
     private Gender gender;
 
     // WAŻNE: FetchType.EAGER - ładuje grafik od razu!
-    // WAŻNE: BRAK @JsonIgnore - chcemy wysłać grafik!
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    //Pozwala aby wpisy w grafiku się nie powtarzały
     private List<TimeSlot> schedule = new ArrayList<>();
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.EAGER) //Pozwala na posiadanie wielu zainteresowan
     @JoinTable(
             name = "user_interests",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "interest_id")
     )
-    private Set<Interest> interests = new HashSet<>();
+    private Set<Interest> interests = new HashSet<>(); //Niepowtarzający się zbiór
 
     public User() {}
 

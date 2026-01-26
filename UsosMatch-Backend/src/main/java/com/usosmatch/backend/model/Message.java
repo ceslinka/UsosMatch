@@ -7,10 +7,10 @@ import jakarta.persistence.Id;
 
 import java.time.LocalDateTime;
 
-@Entity
+@Entity //Odniesienie się do bazy danych
 public class Message {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id //Primary Key
+    @GeneratedValue(strategy = GenerationType.IDENTITY) //Generowanie ID
     private Long id;
     private Long senderId; // używamy zamiast całego obiektu
     private Long receiverId;
